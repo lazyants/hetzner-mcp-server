@@ -12,12 +12,15 @@ export function formatResponse(data: unknown): CallToolResult {
   const result: CallToolResult = {
     content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
   };
+  // GOTCHA: DELETE responses return empty strings (204). Only set structuredContent for objects.
   if (data !== null && typeof data === 'object') {
     result.structuredContent = data as Record<string, unknown>;
   }
   return result;
 }
 
+// GOTCHA: Must use `any` — Record<string,unknown> makes destructured props `unknown`,
+// breaking template literals like `/volumes/${id}`. Zod validates at runtime anyway.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function handleToolRequest(fn: (params: any) => Promise<unknown>) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

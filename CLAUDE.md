@@ -71,14 +71,7 @@ server.registerTool(
     }),
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   },
-  async (params) => {           // params are already validated by MCP SDK
-    try {
-      const data = await hetznerRequest('GET', `/resource/${params.id}`);
-      return formatResponse(data);
-    } catch (err) {
-      return toolError(err);
-    }
-  }
+  handleToolRequest(async (params) => hetznerRequest('GET', `/resource/${params.id}`))
 );
 ```
 
