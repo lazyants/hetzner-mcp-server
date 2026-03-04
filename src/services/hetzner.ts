@@ -1,19 +1,8 @@
 import axios, { AxiosInstance, AxiosError, Method } from 'axios';
-import { HETZNER_API_BASE, MAX_RETRIES } from '../constants.js';
+import { HETZNER_API_BASE, MAX_RETRIES, REQUEST_TIMEOUT } from '../constants.js';
 
 interface HetznerErrorBody {
   error: { code: string; message: string };
-}
-
-interface PaginationMeta {
-  pagination: {
-    page: number;
-    per_page: number;
-    previous_page: number | null;
-    next_page: number | null;
-    last_page: number;
-    total_entries: number;
-  };
 }
 
 function getToken(): string {
@@ -30,6 +19,7 @@ function getToken(): string {
 function createClient(): AxiosInstance {
   const client = axios.create({
     baseURL: HETZNER_API_BASE,
+    timeout: REQUEST_TIMEOUT,
     headers: {
       Authorization: `Bearer ${getToken()}`,
       'Content-Type': 'application/json',
@@ -127,35 +117,4 @@ export async function hetznerRequest<T = unknown>(
     }
     throw err;
   }
-}
-
-export async function paginateAll<T>(
-  path: string,
-  key: string,
-  params?: Record<string, unknown>
-): Promise<T[]> {
-  const results: T[] = [];
-  let page = 1;
-
-  while (true) {
-    const response = await hetznerRequest<Record<string, unknown>>(
-      'GET',
-      path,
-      undefined,
-      { ...params, page, per_page: 50 }
-    );
-
-    const items = response[key] as T[];
-    if (items) {
-      results.push(...items);
-    }
-
-    const meta = response.meta as PaginationMeta | undefined;
-    if (!meta?.pagination?.next_page) {
-      break;
-    }
-    page = meta.pagination.next_page;
-  }
-
-  return results;
 }

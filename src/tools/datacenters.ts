@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { hetznerRequest } from '../services/hetzner.js';
-import { toolError, formatResponse } from '../helpers.js';
+import { handleToolRequest } from '../helpers.js';
 import { IdSchema, PaginationParams } from '../schemas/common.js';
 
 export function registerDatacenterTools(server: McpServer): void {
@@ -17,14 +17,7 @@ export function registerDatacenterTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('GET', '/datacenters', undefined, params);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('GET', '/datacenters', undefined, params))
   );
 
   // Get datacenter
@@ -38,14 +31,7 @@ export function registerDatacenterTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('GET', `/datacenters/${params.id}`);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('GET', `/datacenters/${params.id}`))
   );
 
   // List locations
@@ -60,14 +46,7 @@ export function registerDatacenterTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('GET', '/locations', undefined, params);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('GET', '/locations', undefined, params))
   );
 
   // Get location
@@ -81,14 +60,7 @@ export function registerDatacenterTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('GET', `/locations/${params.id}`);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('GET', `/locations/${params.id}`))
   );
 
   // List server types
@@ -103,14 +75,7 @@ export function registerDatacenterTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('GET', '/server_types', undefined, params);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('GET', '/server_types', undefined, params))
   );
 
   // Get server type
@@ -124,13 +89,6 @@ export function registerDatacenterTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('GET', `/server_types/${params.id}`);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('GET', `/server_types/${params.id}`))
   );
 }

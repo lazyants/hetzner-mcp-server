@@ -9,7 +9,26 @@ export function toolError(err: unknown): CallToolResult {
 }
 
 export function formatResponse(data: unknown): CallToolResult {
-  return {
+  const result: CallToolResult = {
     content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
+  };
+  if (data !== null && typeof data === 'object') {
+    result.structuredContent = data as Record<string, unknown>;
+  }
+  return result;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function handleToolRequest(fn: (params: any) => Promise<unknown>) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return async (params: any) => {
+    try {
+      const data = await fn(params);
+      return formatResponse(data);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`[hetzner-mcp] Tool error: ${message}`);
+      return toolError(err);
+    }
   };
 }

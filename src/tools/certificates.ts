@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { hetznerRequest } from '../services/hetzner.js';
-import { toolError, formatResponse } from '../helpers.js';
+import { handleToolRequest } from '../helpers.js';
 import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema, NameFilterParam } from '../schemas/common.js';
 
 export function registerCertificateTools(server: McpServer): void {
@@ -18,14 +18,7 @@ export function registerCertificateTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('GET', '/certificates', undefined, params);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('GET', '/certificates', undefined, params))
   );
 
   server.registerTool(
@@ -38,14 +31,7 @@ export function registerCertificateTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('GET', `/certificates/${params.id}`);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('GET', `/certificates/${params.id}`))
   );
 
   server.registerTool(
@@ -63,14 +49,7 @@ export function registerCertificateTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('POST', '/certificates', params);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('POST', '/certificates', params))
   );
 
   server.registerTool(
@@ -85,15 +64,10 @@ export function registerCertificateTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...body } = params;
-        const data = await hetznerRequest('PUT', `/certificates/${id}`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('PUT', `/certificates/${id}`, body);
+    })
   );
 
   server.registerTool(
@@ -106,14 +80,7 @@ export function registerCertificateTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('DELETE', `/certificates/${params.id}`);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('DELETE', `/certificates/${params.id}`))
   );
 
   server.registerTool(
@@ -126,13 +93,6 @@ export function registerCertificateTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('POST', `/certificates/${params.id}/actions/retry`);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('POST', `/certificates/${params.id}/actions/retry`))
   );
 }

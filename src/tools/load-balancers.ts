@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { hetznerRequest } from '../services/hetzner.js';
-import { toolError, formatResponse } from '../helpers.js';
+import { handleToolRequest } from '../helpers.js';
 import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema, NameFilterParam } from '../schemas/common.js';
 
 const HealthCheckHttpSchema = z.object({
@@ -59,14 +59,7 @@ export function registerLoadBalancerTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('GET', '/load_balancers', undefined, params);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('GET', '/load_balancers', undefined, params))
   );
 
   server.registerTool(
@@ -79,14 +72,7 @@ export function registerLoadBalancerTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('GET', `/load_balancers/${params.id}`);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('GET', `/load_balancers/${params.id}`))
   );
 
   server.registerTool(
@@ -110,14 +96,7 @@ export function registerLoadBalancerTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('POST', '/load_balancers', params);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('POST', '/load_balancers', params))
   );
 
   server.registerTool(
@@ -132,15 +111,10 @@ export function registerLoadBalancerTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...body } = params;
-        const data = await hetznerRequest('PUT', `/load_balancers/${id}`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('PUT', `/load_balancers/${id}`, body);
+    })
   );
 
   server.registerTool(
@@ -153,14 +127,7 @@ export function registerLoadBalancerTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('DELETE', `/load_balancers/${params.id}`);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('DELETE', `/load_balancers/${params.id}`))
   );
 
   server.registerTool(
@@ -178,15 +145,10 @@ export function registerLoadBalancerTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...body } = params;
-        const data = await hetznerRequest('POST', `/load_balancers/${id}/actions/add_target`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/load_balancers/${id}/actions/add_target`, body);
+    })
   );
 
   server.registerTool(
@@ -203,15 +165,10 @@ export function registerLoadBalancerTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...body } = params;
-        const data = await hetznerRequest('POST', `/load_balancers/${id}/actions/remove_target`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/load_balancers/${id}/actions/remove_target`, body);
+    })
   );
 
   server.registerTool(
@@ -230,15 +187,10 @@ export function registerLoadBalancerTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...body } = params;
-        const data = await hetznerRequest('POST', `/load_balancers/${id}/actions/add_service`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/load_balancers/${id}/actions/add_service`, body);
+    })
   );
 
   server.registerTool(
@@ -257,15 +209,10 @@ export function registerLoadBalancerTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...body } = params;
-        const data = await hetznerRequest('PUT', `/load_balancers/${id}/actions/update_service`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('PUT', `/load_balancers/${id}/actions/update_service`, body);
+    })
   );
 
   server.registerTool(
@@ -279,15 +226,10 @@ export function registerLoadBalancerTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...body } = params;
-        const data = await hetznerRequest('POST', `/load_balancers/${id}/actions/delete_service`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/load_balancers/${id}/actions/delete_service`, body);
+    })
   );
 
   server.registerTool(
@@ -301,15 +243,10 @@ export function registerLoadBalancerTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...body } = params;
-        const data = await hetznerRequest('POST', `/load_balancers/${id}/actions/change_algorithm`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/load_balancers/${id}/actions/change_algorithm`, body);
+    })
   );
 
   server.registerTool(
@@ -323,15 +260,10 @@ export function registerLoadBalancerTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...body } = params;
-        const data = await hetznerRequest('POST', `/load_balancers/${id}/actions/change_type`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/load_balancers/${id}/actions/change_type`, body);
+    })
   );
 
   server.registerTool(
@@ -346,15 +278,10 @@ export function registerLoadBalancerTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...body } = params;
-        const data = await hetznerRequest('POST', `/load_balancers/${id}/actions/attach_to_network`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/load_balancers/${id}/actions/attach_to_network`, body);
+    })
   );
 
   server.registerTool(
@@ -368,15 +295,10 @@ export function registerLoadBalancerTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...body } = params;
-        const data = await hetznerRequest('POST', `/load_balancers/${id}/actions/detach_from_network`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/load_balancers/${id}/actions/detach_from_network`, body);
+    })
   );
 
   server.registerTool(
@@ -392,15 +314,10 @@ export function registerLoadBalancerTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...queryParams } = params;
-        const data = await hetznerRequest('GET', `/load_balancers/${id}/metrics`, undefined, queryParams);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...queryParams } = params;
+      return hetznerRequest('GET', `/load_balancers/${id}/metrics`, undefined, queryParams);
+    })
   );
 
   server.registerTool(
@@ -414,13 +331,6 @@ export function registerLoadBalancerTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('GET', '/load_balancer_types', undefined, params);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('GET', '/load_balancer_types', undefined, params))
   );
 }

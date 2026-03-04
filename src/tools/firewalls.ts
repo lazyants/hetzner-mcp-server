@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { hetznerRequest } from '../services/hetzner.js';
-import { toolError, formatResponse } from '../helpers.js';
+import { handleToolRequest } from '../helpers.js';
 import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema, NameFilterParam } from '../schemas/common.js';
 
 const FirewallRuleSchema = z.object({
@@ -32,14 +32,7 @@ export function registerFirewallTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('GET', '/firewalls', undefined, params);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('GET', '/firewalls', undefined, params))
   );
 
   server.registerTool(
@@ -52,14 +45,7 @@ export function registerFirewallTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('GET', `/firewalls/${params.id}`);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('GET', `/firewalls/${params.id}`))
   );
 
   server.registerTool(
@@ -75,14 +61,7 @@ export function registerFirewallTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('POST', '/firewalls', params);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('POST', '/firewalls', params))
   );
 
   server.registerTool(
@@ -97,15 +76,10 @@ export function registerFirewallTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...body } = params;
-        const data = await hetznerRequest('PUT', `/firewalls/${id}`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('PUT', `/firewalls/${id}`, body);
+    })
   );
 
   server.registerTool(
@@ -118,14 +92,7 @@ export function registerFirewallTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('DELETE', `/firewalls/${params.id}`);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('DELETE', `/firewalls/${params.id}`))
   );
 
   server.registerTool(
@@ -139,15 +106,10 @@ export function registerFirewallTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...body } = params;
-        const data = await hetznerRequest('POST', `/firewalls/${id}/actions/set_rules`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/firewalls/${id}/actions/set_rules`, body);
+    })
   );
 
   server.registerTool(
@@ -161,15 +123,10 @@ export function registerFirewallTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...body } = params;
-        const data = await hetznerRequest('POST', `/firewalls/${id}/actions/apply_to_resources`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/firewalls/${id}/actions/apply_to_resources`, body);
+    })
   );
 
   server.registerTool(
@@ -183,14 +140,9 @@ export function registerFirewallTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...body } = params;
-        const data = await hetznerRequest('POST', `/firewalls/${id}/actions/remove_from_resources`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/firewalls/${id}/actions/remove_from_resources`, body);
+    })
   );
 }

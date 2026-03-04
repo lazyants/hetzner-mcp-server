@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { hetznerRequest } from '../services/hetzner.js';
-import { toolError, formatResponse } from '../helpers.js';
+import { handleToolRequest } from '../helpers.js';
 import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema } from '../schemas/common.js';
 
 export function registerFloatingIpTools(server: McpServer): void {
@@ -18,14 +18,7 @@ export function registerFloatingIpTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('GET', '/floating_ips', undefined, params);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('GET', '/floating_ips', undefined, params))
   );
 
   // Get floating IP
@@ -39,14 +32,7 @@ export function registerFloatingIpTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('GET', `/floating_ips/${params.id}`);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('GET', `/floating_ips/${params.id}`))
   );
 
   // Create floating IP
@@ -65,14 +51,7 @@ export function registerFloatingIpTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('POST', '/floating_ips', params);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('POST', '/floating_ips', params))
   );
 
   // Update floating IP
@@ -89,15 +68,10 @@ export function registerFloatingIpTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...body } = params;
-        const data = await hetznerRequest('PUT', `/floating_ips/${id}`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('PUT', `/floating_ips/${id}`, body);
+    })
   );
 
   // Delete floating IP
@@ -111,14 +85,7 @@ export function registerFloatingIpTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('DELETE', `/floating_ips/${params.id}`);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('DELETE', `/floating_ips/${params.id}`))
   );
 
   // Assign floating IP
@@ -133,15 +100,10 @@ export function registerFloatingIpTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...body } = params;
-        const data = await hetznerRequest('POST', `/floating_ips/${id}/actions/assign`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/floating_ips/${id}/actions/assign`, body);
+    })
   );
 
   // Unassign floating IP
@@ -155,14 +117,7 @@ export function registerFloatingIpTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('POST', `/floating_ips/${params.id}/actions/unassign`);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('POST', `/floating_ips/${params.id}/actions/unassign`))
   );
 
   // Change floating IP reverse DNS
@@ -178,14 +133,9 @@ export function registerFloatingIpTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...body } = params;
-        const data = await hetznerRequest('POST', `/floating_ips/${id}/actions/change_dns_ptr`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/floating_ips/${id}/actions/change_dns_ptr`, body);
+    })
   );
 }

@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { hetznerRequest } from '../services/hetzner.js';
-import { toolError, formatResponse } from '../helpers.js';
+import { handleToolRequest } from '../helpers.js';
 import { IdSchema, PaginationParams } from '../schemas/common.js';
 
 export function registerIsoTools(server: McpServer): void {
@@ -18,14 +18,7 @@ export function registerIsoTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('GET', '/isos', undefined, params);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('GET', '/isos', undefined, params))
   );
 
   // Get ISO
@@ -39,14 +32,7 @@ export function registerIsoTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('GET', `/isos/${params.id}`);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('GET', `/isos/${params.id}`))
   );
 
   // Attach ISO to server
@@ -61,15 +47,10 @@ export function registerIsoTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { server_id, ...body } = params;
-        const data = await hetznerRequest('POST', `/servers/${server_id}/actions/attach_iso`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { server_id, ...body } = params;
+      return hetznerRequest('POST', `/servers/${server_id}/actions/attach_iso`, body);
+    })
   );
 
   // Detach ISO from server
@@ -83,13 +64,6 @@ export function registerIsoTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('POST', `/servers/${params.server_id}/actions/detach_iso`);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('POST', `/servers/${params.server_id}/actions/detach_iso`))
   );
 }

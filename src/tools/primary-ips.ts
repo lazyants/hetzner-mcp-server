@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { hetznerRequest } from '../services/hetzner.js';
-import { toolError, formatResponse } from '../helpers.js';
+import { handleToolRequest } from '../helpers.js';
 import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema } from '../schemas/common.js';
 
 export function registerPrimaryIpTools(server: McpServer): void {
@@ -19,14 +19,7 @@ export function registerPrimaryIpTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('GET', '/primary_ips', undefined, params);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('GET', '/primary_ips', undefined, params))
   );
 
   // Get primary IP
@@ -40,14 +33,7 @@ export function registerPrimaryIpTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('GET', `/primary_ips/${params.id}`);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('GET', `/primary_ips/${params.id}`))
   );
 
   // Create primary IP
@@ -66,14 +52,7 @@ export function registerPrimaryIpTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('POST', '/primary_ips', params);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('POST', '/primary_ips', params))
   );
 
   // Update primary IP
@@ -90,15 +69,10 @@ export function registerPrimaryIpTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...body } = params;
-        const data = await hetznerRequest('PUT', `/primary_ips/${id}`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('PUT', `/primary_ips/${id}`, body);
+    })
   );
 
   // Delete primary IP
@@ -112,14 +86,7 @@ export function registerPrimaryIpTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('DELETE', `/primary_ips/${params.id}`);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('DELETE', `/primary_ips/${params.id}`))
   );
 
   // Assign primary IP
@@ -135,15 +102,10 @@ export function registerPrimaryIpTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...body } = params;
-        const data = await hetznerRequest('POST', `/primary_ips/${id}/actions/assign`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/primary_ips/${id}/actions/assign`, body);
+    })
   );
 
   // Unassign primary IP
@@ -157,14 +119,7 @@ export function registerPrimaryIpTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const data = await hetznerRequest('POST', `/primary_ips/${params.id}/actions/unassign`);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => hetznerRequest('POST', `/primary_ips/${params.id}/actions/unassign`))
   );
 
   // Change primary IP reverse DNS
@@ -180,14 +135,9 @@ export function registerPrimaryIpTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    async (params) => {
-      try {
-        const { id, ...body } = params;
-        const data = await hetznerRequest('POST', `/primary_ips/${id}/actions/change_dns_ptr`, body);
-        return formatResponse(data);
-      } catch (err) {
-        return toolError(err);
-      }
-    }
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/primary_ips/${id}/actions/change_dns_ptr`, body);
+    })
   );
 }

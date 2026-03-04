@@ -454,112 +454,32 @@ describe('Client singleton', () => {
   });
 });
 
-describe('paginateAll', () => {
+describe('Client configuration', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.unstubAllEnvs();
     vi.stubEnv('HETZNER_API_TOKEN', 'test-token');
   });
 
-  it('returns items from a single page', async () => {
-    const mockRequest = vi.fn().mockResolvedValue({
-      data: {
-        servers: [{ id: 1 }],
-        meta: { pagination: { next_page: null } },
-      },
-    });
+  it('configures request timeout', async () => {
+    const mockCreate = vi.fn(() => ({
+      interceptors: { response: { use: vi.fn() } },
+      request: vi.fn().mockResolvedValue({ data: {} }),
+    }));
 
     vi.doMock('axios', async (importOriginal) => {
       const actual = await importOriginal<typeof import('axios')>();
       return {
         ...actual,
-        default: {
-          ...actual.default,
-          create: () => ({
-            interceptors: { response: { use: vi.fn() } },
-            request: mockRequest,
-          }),
-        },
+        default: { ...actual.default, create: mockCreate },
       };
     });
 
-    const { paginateAll } = await import('../services/hetzner.js');
-    const result = await paginateAll('/servers', 'servers');
-    expect(result).toEqual([{ id: 1 }]);
-  });
+    const { hetznerRequest } = await import('../services/hetzner.js');
+    await hetznerRequest('GET', '/test');
 
-  it('aggregates items across multiple pages', async () => {
-    let callCount = 0;
-    const mockRequest = vi.fn().mockImplementation(() => {
-      callCount++;
-      if (callCount === 1) {
-        return Promise.resolve({
-          data: {
-            servers: [{ id: 1 }],
-            meta: { pagination: { next_page: 2 } },
-          },
-        });
-      }
-      return Promise.resolve({
-        data: {
-          servers: [{ id: 2 }],
-          meta: { pagination: { next_page: null } },
-        },
-      });
-    });
-
-    vi.doMock('axios', async (importOriginal) => {
-      const actual = await importOriginal<typeof import('axios')>();
-      return {
-        ...actual,
-        default: {
-          ...actual.default,
-          create: () => ({
-            interceptors: { response: { use: vi.fn() } },
-            request: mockRequest,
-          }),
-        },
-      };
-    });
-
-    const { paginateAll } = await import('../services/hetzner.js');
-    const result = await paginateAll('/servers', 'servers');
-
-    expect(result).toEqual([{ id: 1 }, { id: 2 }]);
-    expect(mockRequest).toHaveBeenCalledTimes(2);
-    // First call: page 1
-    expect(mockRequest.mock.calls[0][0].params).toEqual(
-      expect.objectContaining({ page: 1 })
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ timeout: 30_000 })
     );
-    // Second call: page 2
-    expect(mockRequest.mock.calls[1][0].params).toEqual(
-      expect.objectContaining({ page: 2 })
-    );
-  });
-
-  it('returns empty array when key is missing from response', async () => {
-    const mockRequest = vi.fn().mockResolvedValue({
-      data: {
-        meta: { pagination: { next_page: null } },
-      },
-    });
-
-    vi.doMock('axios', async (importOriginal) => {
-      const actual = await importOriginal<typeof import('axios')>();
-      return {
-        ...actual,
-        default: {
-          ...actual.default,
-          create: () => ({
-            interceptors: { response: { use: vi.fn() } },
-            request: mockRequest,
-          }),
-        },
-      };
-    });
-
-    const { paginateAll } = await import('../services/hetzner.js');
-    const result = await paginateAll('/servers', 'servers');
-    expect(result).toEqual([]);
   });
 });
