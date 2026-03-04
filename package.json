@@ -1,15 +1,18 @@
 {
   "name": "hetzner-mcp-server",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "MCP server for the Hetzner Cloud API — manage servers, networks, volumes, and more",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
     "hetzner-mcp-server": "dist/index.js",
-    "hetzner-mcp-compute": "dist/entry-compute.js",
-    "hetzner-mcp-network": "dist/entry-network.js",
-    "hetzner-mcp-resources": "dist/entry-resources.js"
+    "hetzner-mcp-servers": "dist/entry-servers.js",
+    "hetzner-mcp-networking": "dist/entry-networking.js",
+    "hetzner-mcp-load-balancers": "dist/entry-load-balancers.js",
+    "hetzner-mcp-ips": "dist/entry-ips.js",
+    "hetzner-mcp-storage": "dist/entry-storage.js",
+    "hetzner-mcp-config": "dist/entry-config.js"
   },
   "scripts": {
     "build": "tsc",

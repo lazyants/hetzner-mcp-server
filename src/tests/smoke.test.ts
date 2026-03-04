@@ -44,31 +44,46 @@ describe('Tool registration smoke tests', () => {
     expect(toolCount(server)).toBe(104);
   });
 
-  it('registers 36 tools for compute split', () => {
+  it('registers 22 tools for servers split', () => {
     const server = freshServer();
     registerServerTools(server);
-    registerImageTools(server);
-    registerIsoTools(server);
-    registerPlacementGroupTools(server);
     registerDatacenterTools(server);
-    expect(toolCount(server)).toBe(36);
+    expect(toolCount(server)).toBe(22);
   });
 
-  it('registers 39 tools for network split', () => {
+  it('registers 17 tools for networking split', () => {
     const server = freshServer();
     registerNetworkTools(server);
     registerFirewallTools(server);
-    registerLoadBalancerTools(server);
-    registerCertificateTools(server);
-    expect(toolCount(server)).toBe(39);
+    expect(toolCount(server)).toBe(17);
   });
 
-  it('registers 29 tools for resources split', () => {
+  it('registers 22 tools for load-balancers split', () => {
     const server = freshServer();
-    registerVolumeTools(server);
+    registerLoadBalancerTools(server);
+    registerCertificateTools(server);
+    expect(toolCount(server)).toBe(22);
+  });
+
+  it('registers 16 tools for ips split', () => {
+    const server = freshServer();
     registerFloatingIpTools(server);
     registerPrimaryIpTools(server);
+    expect(toolCount(server)).toBe(16);
+  });
+
+  it('registers 13 tools for storage split', () => {
+    const server = freshServer();
+    registerVolumeTools(server);
+    registerImageTools(server);
+    expect(toolCount(server)).toBe(13);
+  });
+
+  it('registers 14 tools for config split', () => {
+    const server = freshServer();
     registerSshKeyTools(server);
-    expect(toolCount(server)).toBe(29);
+    registerIsoTools(server);
+    registerPlacementGroupTools(server);
+    expect(toolCount(server)).toBe(14);
   });
 });

@@ -29,9 +29,12 @@ Tests live in `src/tests/`. Smoke tests verify tool registration counts per entr
 | Entry Point | Bin Command | Domains | Tools |
 |---|---|---|---|
 | `src/index.ts` | `hetzner-mcp-server` | All 13 domains | 104 |
-| `src/entry-compute.ts` | `hetzner-mcp-compute` | Servers, Images, ISOs, Placement Groups, Reference Data | 36 |
-| `src/entry-network.ts` | `hetzner-mcp-network` | Networks, Firewalls, Load Balancers, Certificates | 39 |
-| `src/entry-resources.ts` | `hetzner-mcp-resources` | Volumes, Floating IPs, Primary IPs, SSH Keys | 29 |
+| `src/entry-servers.ts` | `hetzner-mcp-servers` | Servers, Reference Data | 22 |
+| `src/entry-networking.ts` | `hetzner-mcp-networking` | Networks, Firewalls | 17 |
+| `src/entry-load-balancers.ts` | `hetzner-mcp-load-balancers` | Load Balancers, Certificates | 22 |
+| `src/entry-ips.ts` | `hetzner-mcp-ips` | Floating IPs, Primary IPs | 16 |
+| `src/entry-storage.ts` | `hetzner-mcp-storage` | Volumes, Images | 13 |
+| `src/entry-config.ts` | `hetzner-mcp-config` | SSH Keys, ISOs, Placement Groups | 14 |
 
 ### Core Flow
 
