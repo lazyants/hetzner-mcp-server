@@ -1,6 +1,6 @@
 {
   "name": "@lazyants/hetzner-mcp-server",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "MCP server for the Hetzner Cloud API — manage servers, networks, volumes, and more",
   "type": "module",
   "main": "dist/index.js",

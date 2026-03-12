@@ -6,7 +6,7 @@
     "url": "https://github.com/lazyants/hetzner-mcp-server",
     "source": "github"
   },
-  "version": "1.1.0",
+  "version": "1.1.1",
   "icon": {
     "src": "https://raw.githubusercontent.com/lazyants/hetzner-mcp-server/main/logo.png",
     "mimeType": "image/png",
@@ -16,7 +16,7 @@
     {
       "registryType": "npm",
       "identifier": "@lazyants/hetzner-mcp-server",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "transport": {
         "type": "stdio"
       }
