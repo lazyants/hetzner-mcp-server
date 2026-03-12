@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.lazyants/hetzner",
-  "description": "MCP server for the Hetzner Cloud API — manage servers, networks, volumes, firewalls, load balancers, and more. 104 tools across 13 resource domains with 7 entry points.",
+  "description": "MCP server for the Hetzner Cloud API — servers, networks, volumes, firewalls, and more.",
   "repository": {
     "url": "https://github.com/lazyants/hetzner-mcp-server",
     "source": "github"
@@ -9,8 +9,8 @@
   "version": "1.1.0",
   "packages": [
     {
-      "registry_name": "npm",
-      "name": "@lazyants/hetzner-mcp-server",
+      "registryType": "npm",
+      "identifier": "@lazyants/hetzner-mcp-server",
       "version": "1.1.0"
     }
   ]
