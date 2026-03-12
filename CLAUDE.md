@@ -109,3 +109,4 @@ If 3+ attempts at the same fix fail, stop and reconsider the approach. Challenge
 - `CallToolResult` type imports from `@modelcontextprotocol/sdk/types.js`, not from `server/mcp.js`
 - Environment variable `HETZNER_API_TOKEN` is required at runtime
 - Hetzner API reference: https://docs.hetzner.cloud/
+- **GOTCHA**: `server.json` has two `version` fields — root `version` is the MCP Registry version (must be unique per publish), `packages[0].version` is the npm version (must exist on npm). They can differ.
