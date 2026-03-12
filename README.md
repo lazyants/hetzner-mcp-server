@@ -1,6 +1,6 @@
 # hetzner-mcp-server
 
-[![Tests](https://github.com/lazy-ants/hetzner-mcp-server/actions/workflows/test.yml/badge.svg)](https://github.com/lazy-ants/hetzner-mcp-server/actions/workflows/test.yml)
+[![Tests](https://github.com/lazyants/hetzner-mcp-server/actions/workflows/test.yml/badge.svg)](https://github.com/lazyants/hetzner-mcp-server/actions/workflows/test.yml)
 
 MCP server for the [Hetzner Cloud API](https://docs.hetzner.cloud/). Manage servers, networks, volumes, firewalls, load balancers, and more through the Model Context Protocol.
 
@@ -9,13 +9,13 @@ MCP server for the [Hetzner Cloud API](https://docs.hetzner.cloud/). Manage serv
 ## Installation
 
 ```bash
-npm install -g hetzner-mcp-server
+npm install -g @lazyants/hetzner-mcp-server
 ```
 
 Or run directly:
 
 ```bash
-npx hetzner-mcp-server
+npx @lazyants/hetzner-mcp-server
 ```
 
 ## Configuration
@@ -51,7 +51,7 @@ Add to `~/.claude/settings.json`:
   "mcpServers": {
     "hetzner": {
       "command": "npx",
-      "args": ["-y", "hetzner-mcp-server"],
+      "args": ["-y", "@lazyants/hetzner-mcp-server"],
       "env": {
         "HETZNER_API_TOKEN": "your-token-here"
       }
@@ -67,12 +67,12 @@ Or use split servers (pick the splits you need):
   "mcpServers": {
     "hetzner-servers": {
       "command": "npx",
-      "args": ["-y", "-p", "hetzner-mcp-server", "hetzner-mcp-servers"],
+      "args": ["-y", "-p", "@lazyants/hetzner-mcp-server", "hetzner-mcp-servers"],
       "env": { "HETZNER_API_TOKEN": "your-token-here" }
     },
     "hetzner-networking": {
       "command": "npx",
-      "args": ["-y", "-p", "hetzner-mcp-server", "hetzner-mcp-networking"],
+      "args": ["-y", "-p", "@lazyants/hetzner-mcp-server", "hetzner-mcp-networking"],
       "env": { "HETZNER_API_TOKEN": "your-token-here" }
     }
   }
@@ -88,7 +88,7 @@ Add to `claude_desktop_config.json`:
   "mcpServers": {
     "hetzner": {
       "command": "npx",
-      "args": ["-y", "hetzner-mcp-server"],
+      "args": ["-y", "@lazyants/hetzner-mcp-server"],
       "env": {
         "HETZNER_API_TOKEN": "your-token-here"
       }
