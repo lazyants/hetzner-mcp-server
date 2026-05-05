@@ -22,12 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with zod 4 (see CLAUDE.md "Critical Rules").
 - **Releasing:** GitHub Releases now auto-publish to npm with provenance
   (`--provenance --access public`) before pushing to the MCP Registry.
-  The workflow installs `mcp-publisher` early and smoke-tests it before
-  the irreversible `npm publish` so a broken publisher binary fails
-  fast. Skips `npm publish` cleanly if the version is already on npm
-  (cutover/recovery guard). Requires `NPM_TOKEN` repo secret as a
-  granular access token (classic legacy tokens fail silently with
-  `--provenance` per npm's 2024 enforcement).
+  Authentication uses npm Trusted Publishing — the `id-token: write`
+  workflow permission is exchanged for a one-shot publish token via the
+  trusted-publisher binding configured in the npm web UI. No `NPM_TOKEN`
+  secret is stored in the repo. The workflow installs `mcp-publisher`
+  early and smoke-tests it before the irreversible `npm publish` so a
+  broken publisher binary fails fast. Skips `npm publish` cleanly if the
+  version is already on npm (cutover/recovery guard).
 - **CI:** test workflow runs on Node 20 and 22 with npm cache, lint,
   version-sync check, and `npm audit --audit-level=moderate --omit=dev`.
 

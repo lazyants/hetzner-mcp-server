@@ -173,9 +173,11 @@ Releases ship via the GitHub Release event. Maintainer flow:
 
 The workflow skips `npm publish` cleanly if the version is already on npm (cutover guard for releases that were partially published manually).
 
-### Required repository secret
+### npm authentication
 
-`NPM_TOKEN` must be a **granular access token** issued from the npm org dashboard (https://www.npmjs.com/settings/lazyants/tokens) with read-and-write permission on `@lazyants/hetzner-mcp-server`. Classic legacy automation tokens silently fail with `--provenance` since npm's 2024 enforcement.
+Publishing uses **npm Trusted Publishing**: the workflow's GitHub OIDC token (`id-token: write`) is exchanged for a one-shot publish token at runtime. No `NPM_TOKEN` secret needs to live in the repo.
+
+The binding is configured in the npm web UI (package → Trusted Publishers): provider `GitHub Actions`, organization `lazyants`, repository `hetzner-mcp-server`, workflow `publish-registry.yml`.
 
 ## License
 

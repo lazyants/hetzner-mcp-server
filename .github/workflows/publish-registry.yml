@@ -52,11 +52,14 @@ jobs:
             echo "already_published=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # Auth via npm Trusted Publishing: the `id-token: write` permission
+      # plus the trusted-publisher binding configured in the npm web UI
+      # (org=lazyants, repo=hetzner-mcp-server, workflow=publish-registry.yml)
+      # is exchanged for a one-shot publish token automatically. No NPM_TOKEN
+      # secret is required.
       - name: Publish to npm
         if: steps.npm_check.outputs.already_published == 'false'
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Wait for npm registry propagation
         run: |
