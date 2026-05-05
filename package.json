@@ -1,6 +1,6 @@
 {
   "name": "@lazyants/hetzner-mcp-server",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "MCP server for the Hetzner Cloud API — manage servers, networks, volumes, and more",
   "type": "module",
   "main": "dist/index.js",
@@ -18,7 +18,9 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "vitest run",
-    "prepublishOnly": "npm run build"
+    "lint": "eslint .",
+    "check-versions": "node scripts/check-versions.mjs",
+    "prepublishOnly": "node scripts/check-versions.mjs && npm run build"
   },
   "files": [
     "dist",
@@ -38,15 +40,22 @@
     "url": "git+https://github.com/lazyants/hetzner-mcp-server.git"
   },
   "mcpName": "io.github.lazyants/hetzner",
-  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "FSL-1.1-MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.27.0",
-    "axios": "^1.7.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "axios": "^1.16.0",
     "zod": "^3.25.0"
   },
   "devDependencies": {
-    "typescript": "^5.5.0",
+    "@eslint/js": "^9.39.4",
     "@types/node": "^20.0.0",
-    "vitest": "^3.0.0"
+    "eslint": "^9.39.4",
+    "globals": "^15.15.0",
+    "typescript": "^6.0.0",
+    "typescript-eslint": "^8.59.2",
+    "vitest": "^4.1.0"
   }
 }

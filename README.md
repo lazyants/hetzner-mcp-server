@@ -162,6 +162,21 @@ Add to `claude_desktop_config.json`:
 
 Create, update, and delete operations may incur charges on your Hetzner Cloud account. Use read-only API tokens when possible. The authors are not responsible for any costs incurred.
 
+## Releasing
+
+Releases ship via the GitHub Release event. Maintainer flow:
+
+1. Bump the version in `package.json` and `server.json` (`npm run check-versions` enforces alignment between `package.json#/version` and `server.json#/packages[0].version`).
+2. Update `CHANGELOG.md`.
+3. Commit, then `gh release create vX.Y.Z --notes-from-tag` (or write release notes inline).
+4. The `Publish to npm + MCP Registry` workflow runs automatically: it `npm publish`es with provenance, polls the registry until the tarball is available, then pushes the matching `server.json` to the MCP Registry via `mcp-publisher`.
+
+The workflow skips `npm publish` cleanly if the version is already on npm (cutover guard for releases that were partially published manually).
+
+### Required repository secret
+
+`NPM_TOKEN` must be a **granular access token** issued from the npm org dashboard (https://www.npmjs.com/settings/lazyants/tokens) with read-and-write permission on `@lazyants/hetzner-mcp-server`. Classic legacy automation tokens silently fail with `--provenance` since npm's 2024 enforcement.
+
 ## License
 
-MIT — see [LICENSE](LICENSE) for details.
+[FSL-1.1-MIT](LICENSE) — see [LICENSE](LICENSE) for the full terms. Versions `1.1.1` and earlier remain MIT-licensed.
