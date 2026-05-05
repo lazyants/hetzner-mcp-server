@@ -27,6 +27,7 @@ const ServiceHttpSchema = z.object({
   cookie_name: z.string().optional().describe('Name of the sticky session cookie'),
   redirect_http: z.boolean().optional().describe('Redirect HTTP to HTTPS'),
   sticky_sessions: z.boolean().optional().describe('Enable sticky sessions'),
+  timeout_idle: z.number().int().min(30).max(300).optional().describe('Idle timeout in seconds (30-300, default 50)'),
 });
 
 const LbTargetSchema = z.object({
@@ -211,7 +212,7 @@ export function registerLoadBalancerTools(server: McpServer): void {
     },
     handleToolRequest(async (params) => {
       const { id, ...body } = params;
-      return hetznerRequest('PUT', `/load_balancers/${id}/actions/update_service`, body);
+      return hetznerRequest('POST', `/load_balancers/${id}/actions/update_service`, body);
     })
   );
 

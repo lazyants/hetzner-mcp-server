@@ -27,6 +27,7 @@ export interface LbService {
     cookie_name?: string;
     redirect_http?: boolean;
     sticky_sessions?: boolean;
+    timeout_idle?: number;
   };
 }
 
