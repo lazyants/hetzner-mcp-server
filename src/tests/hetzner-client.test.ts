@@ -230,7 +230,6 @@ describe('Hetzner HTTP client', () => {
 });
 
 describe('Rate-limit retry interceptor', () => {
-  let successHandler: Function;
   let errorHandler: Function;
   let mockRequest: ReturnType<typeof vi.fn>;
 
@@ -251,8 +250,7 @@ describe('Rate-limit retry interceptor', () => {
           create: () => ({
             interceptors: {
               response: {
-                use: (onSuccess: any, onError: any) => {
-                  successHandler = onSuccess;
+                use: (_onSuccess: any, onError: any) => {
                   errorHandler = onError;
                 },
               },
