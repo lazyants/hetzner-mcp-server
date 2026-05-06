@@ -107,7 +107,7 @@ If 3+ attempts at the same fix fail, stop and reconsider the approach. Challenge
 ## Critical Rules
 
 - **CRITICAL**: All relative imports MUST use `.js` extension — `import { x } from '../helpers.js'` (ESM requirement, TypeScript resolves `.js` → `.ts` at compile time)
-- **CRITICAL**: Use Zod v3 API (`zod@^3.25`). Do NOT upgrade to Zod v4 — it has `.describe()` propagation bugs with the MCP SDK
+- **Zod major version**: Project is on `zod@^3.25` today. Zod 4 is acceptable on `@modelcontextprotocol/sdk` ≥ 1.29 (verified against lexware-mcp-server 2026-05-06) — runtime-verify `.describe()` propagation via a `tools/list` round-trip before bumping; do NOT downgrade based on outdated rules
 - **NEVER** use `.strict()` on Zod schemas — breaks MCP SDK schema generation
 - Tool descriptions: 1-2 sentences max, no cross-references to other tools
 - `CallToolResult` type imports from `@modelcontextprotocol/sdk/types.js`, not from `server/mcp.js`
