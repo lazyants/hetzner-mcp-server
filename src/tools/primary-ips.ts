@@ -41,10 +41,10 @@ export function registerPrimaryIpTools(server: McpServer): void {
     'hetzner_create_primary_ip',
     {
       title: 'Create Primary IP',
-      description: 'Create a new primary IP with the specified type and assignee type.',
+      description: 'Create a new primary IP with the specified type and optional assignee type.',
       inputSchema: z.object({
         type: z.enum(['ipv4', 'ipv6']).describe('IP type'),
-        assignee_type: z.literal('server').describe('Assignee type (must be "server")'),
+        assignee_type: z.literal('server').optional().describe('Assignee type. Optional since 2026-04-27; defaults to "server" until 2026-08-01, then to "unassigned".'),
         name: z.string().describe('Name of the primary IP'),
         datacenter: z.string().optional().describe('Datacenter name (e.g. "fsn1-dc14")'),
         auto_delete: z.boolean().optional().describe('Delete the primary IP when the assignee is deleted'),

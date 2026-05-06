@@ -9,8 +9,10 @@ MCP server for the Hetzner Cloud API. 104 tools across 13 resource domains, Type
 ## Build & Development
 
 ```bash
-npm run build          # TypeScript compile (tsc) → dist/
-npm start              # Run full server (node dist/index.js)
+npm run build           # TypeScript compile (tsc) → dist/
+npm start               # Run full server (node dist/index.js)
+npm run lint            # ESLint 9 flat config (eslint.config.mjs)
+npm run check-versions  # Verify package.json/server.json version alignment
 ```
 
 Verify startup: `HETZNER_API_TOKEN=test node dist/index.js` — blocks on stdio = working correctly.
@@ -19,6 +21,8 @@ Verify startup: `HETZNER_API_TOKEN=test node dist/index.js` — blocks on stdio 
 npm test                                       # Run all tests
 npx vitest run src/tests/smoke.test.ts         # Run a single test file
 ```
+
+CI runs `lint` + `check-versions` + `npm audit --audit-level=moderate --omit=dev` before `build`/`test` on the Node 20 and 22 matrix. PRs that don't pass `eslint .` won't merge.
 
 Tests live in `src/tests/`. Smoke tests verify tool registration counts per entry point. Unit tests cover HTTP client error handling and retry logic.
 

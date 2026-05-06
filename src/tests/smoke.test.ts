@@ -17,7 +17,6 @@ import { registerSshKeyTools } from '../tools/ssh-keys.js';
 
 function toolCount(server: McpServer): number {
   // _registeredTools is a plain object keyed by tool name
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return Object.keys((server as any)._registeredTools).length;
 }
 

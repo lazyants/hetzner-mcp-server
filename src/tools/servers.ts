@@ -181,6 +181,7 @@ export function registerServerTools(server: McpServer): void {
       inputSchema: z.object({
         id: IdSchema.describe('Server ID'),
         image: z.string().describe('Image name or ID to rebuild from'),
+        user_data: z.string().optional().describe('Cloud-init user data to apply to the rebuilt server. Overrides the value set at creation.'),
       }),
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
     },
