@@ -24,6 +24,12 @@ jobs:
         with:
           node-version: 20
 
+      # Node 20 LTS ships with npm 10, which predates Trusted Publishing
+      # (added in npm 11.5+). Without this upgrade, `npm publish` ignores
+      # the OIDC env vars and exits with ENEEDAUTH.
+      - name: Upgrade npm to a TP-capable version
+        run: npm install -g npm@latest
+
       - name: Verify version sync
         run: node scripts/check-versions.mjs
 
