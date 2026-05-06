@@ -108,12 +108,12 @@ export async function hetznerRequest<T = unknown>(
     if (err instanceof AxiosError && err.response) {
       const body = err.response.data as HetznerErrorBody | undefined;
       if (body?.error) {
-        throw new Error(`Hetzner API [${body.error.code}]: ${body.error.message}`);
+        throw new Error(`Hetzner API [${body.error.code}]: ${body.error.message}`, { cause: err });
       }
-      throw new Error(`Hetzner API error: ${err.response.status} ${err.response.statusText}`);
+      throw new Error(`Hetzner API error: ${err.response.status} ${err.response.statusText}`, { cause: err });
     }
     if (err instanceof AxiosError && err.code) {
-      throw new Error(`Network error: ${err.message}`);
+      throw new Error(`Network error: ${err.message}`, { cause: err });
     }
     throw err;
   }
