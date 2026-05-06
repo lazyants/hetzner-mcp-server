@@ -14,10 +14,15 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # NOTE: do NOT set `registry-url` here. With Trusted Publishing
+      # the OIDC token is the only credential we want present; setting
+      # `registry-url` makes setup-node write an .npmrc that reads from
+      # `NODE_AUTH_TOKEN`, which then gets populated with the runner's
+      # GITHUB_TOKEN. npm publish tries to auth with that, fails, and
+      # returns a misleading 404 — TP never fires.
       - uses: actions/setup-node@v6
         with:
           node-version: 20
-          registry-url: 'https://registry.npmjs.org'
 
       - name: Verify version sync
         run: node scripts/check-versions.mjs
