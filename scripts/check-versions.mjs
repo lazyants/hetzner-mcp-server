@@ -35,8 +35,7 @@ if (npmVersion !== packagesVersion) {
 }
 
 // SOFT: server.json#/version (the registry version) should be >= packages[0].version.
-// Registry-only republishes bump only the root version (see hetzner commit a762ae7
-// for the precedent — root 1.1.1 with packages[0] still 1.1.0). CLAUDE.md documents
+// Registry-only republishes bump only the root version. CLAUDE.md documents
 // that these CAN differ. We only warn on regressions.
 if (compareSemver(registryVersion, packagesVersion) < 0) {
   warnings.push(
