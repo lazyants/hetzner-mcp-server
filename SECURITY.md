@@ -2,7 +2,7 @@
 
 ## Project status
 
-`@lazyants/hetzner-mcp-server` is an independent, community-maintained MCP server. It is
+`@lazyants/hetzner-mcp-server` is an independent MCP server. It is
 **not** an official product of, endorsed by, or affiliated with the
 Hetzner Cloud API vendor, Anthropic, or the Model Context Protocol
 project. Security guarantees are limited to what this repository's
