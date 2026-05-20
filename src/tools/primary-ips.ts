@@ -140,4 +140,22 @@ export function registerPrimaryIpTools(server: McpServer): void {
       return hetznerRequest('POST', `/primary_ips/${id}/actions/change_dns_ptr`, body);
     })
   );
+
+  // Change primary IP protection
+  server.registerTool(
+    'hetzner_change_primary_ip_protection',
+    {
+      title: 'Change Primary IP Protection',
+      description: 'Enable or disable delete protection on a primary IP to guard against accidental destruction.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Primary IP ID'),
+        delete: z.boolean().optional().describe('If true, prevents the primary IP from being deleted'),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/primary_ips/${id}/actions/change_protection`, body);
+    })
+  );
 }

@@ -280,4 +280,23 @@ export function registerServerTools(server: McpServer): void {
       return hetznerRequest('GET', `/servers/${id}/actions`, undefined, queryParams);
     })
   );
+
+  // Change server protection
+  server.registerTool(
+    'hetzner_change_server_protection',
+    {
+      title: 'Change Server Protection',
+      description: 'Enable or disable delete and rebuild protection on a server to guard against accidental destruction.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Server ID'),
+        delete: z.boolean().optional().describe('If true, prevents the server from being deleted'),
+        rebuild: z.boolean().optional().describe('If true, prevents the server from being rebuilt'),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/servers/${id}/actions/change_protection`, body);
+    })
+  );
 }

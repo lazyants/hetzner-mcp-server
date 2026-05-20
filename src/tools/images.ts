@@ -92,4 +92,22 @@ export function registerImageTools(server: McpServer): void {
       return hetznerRequest('POST', `/servers/${server_id}/actions/create_image`, body);
     })
   );
+
+  // Change image protection
+  server.registerTool(
+    'hetzner_change_image_protection',
+    {
+      title: 'Change Image Protection',
+      description: 'Enable or disable delete protection on a snapshot or backup image to guard against accidental destruction.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Image ID'),
+        delete: z.boolean().optional().describe('If true, prevents the image from being deleted'),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/images/${id}/actions/change_protection`, body);
+    })
+  );
 }
