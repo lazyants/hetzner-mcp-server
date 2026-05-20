@@ -79,7 +79,7 @@ export function registerFloatingIpTools(server: McpServer): void {
     'hetzner_delete_floating_ip',
     {
       title: 'Delete Floating IP',
-      description: 'Delete a floating IP permanently. It must be unassigned first.',
+      description: 'Delete a floating IP permanently. Since 2026-05-01 the floating IP must be unassigned first; otherwise the API returns the must_be_unassigned error code.',
       inputSchema: z.object({
         id: IdSchema.describe('Floating IP ID'),
       }),

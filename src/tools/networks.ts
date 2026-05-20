@@ -163,6 +163,24 @@ export function registerNetworkTools(server: McpServer): void {
     })
   );
 
+  // Change network IP range
+  server.registerTool(
+    'hetzner_change_ip_range',
+    {
+      title: 'Change Network IP Range',
+      description: 'Expand the IP range of an existing network. The new CIDR range must contain the current range; shrinking is not supported.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Network ID'),
+        ip_range: z.string().describe('New IP range in CIDR notation (e.g. "10.0.0.0/8"). Must be a superset of the current range.'),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/networks/${id}/actions/change_ip_range`, body);
+    })
+  );
+
   // Change network protection
   server.registerTool(
     'hetzner_change_network_protection',

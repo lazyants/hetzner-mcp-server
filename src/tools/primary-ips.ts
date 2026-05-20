@@ -80,7 +80,7 @@ export function registerPrimaryIpTools(server: McpServer): void {
     'hetzner_delete_primary_ip',
     {
       title: 'Delete Primary IP',
-      description: 'Delete a primary IP permanently. It must be unassigned first.',
+      description: 'Delete a primary IP permanently. Since 2026-05-01 the primary IP must be unassigned first; otherwise the API returns the must_be_unassigned error code.',
       inputSchema: z.object({
         id: IdSchema.describe('Primary IP ID'),
       }),
