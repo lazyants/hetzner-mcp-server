@@ -8,6 +8,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - npm package: [`@lazyants/hetzner-mcp-server`](https://www.npmjs.com/package/@lazyants/hetzner-mcp-server)
 - MCP Registry: [`io.github.lazyants/hetzner`](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.lazyants/hetzner)
 
+## [2.1.0] — 2026-05-20
+
+### Added
+
+- **DNS Zones module** (`src/tools/zones.ts`) + new entry binary
+  `hetzner-mcp-dns` (`src/entry-dns.ts`) covering 22 tools across
+  the Hetzner DNS Zones API (zones CRUD, RRSets CRUD,
+  primary-nameserver changes, protection, TTL changes, zonefile
+  import/export). Wraps the GA Nov 2025 surface on the existing
+  `api.hetzner.cloud` baseURL + token.
+- **Per-resource `list_*_actions` for 8 resources**: load balancers,
+  volumes, floating IPs, primary IPs, networks, firewalls,
+  certificates, images (PR #23). Replaces the global `/actions`
+  endpoint Hetzner deprecated in January 2025.
+- **Server actions**: `request_console`, `enable_backup`,
+  `disable_backup`, `change_alias_ips`, `change_dns_ptr` (servers);
+  `change_ip_range` (networks). Plus `must_be_unassigned`
+  precondition notes on `delete_floating_ip` / `delete_primary_ip`
+  descriptions (PR #25).
+- **Per-tool axios-mock test coverage** across all 14 tool modules
+  (PRs #26, #28, #29, #30). Every tool now has at least one test
+  asserting path/method/body/query shape against a mocked
+  `hetznerRequest()`.
+- README tool counts updated to reflect the 147-tool surface
+  (PR #27).
+
+### Fixed
+
+- `formatResponse` no longer sets `structuredContent` for array
+  payloads. The MCP SDK rejects arrays in `structuredContent`;
+  previously this would crash on any tool returning a top-level
+  array (e.g. paginated `list_*` shortcuts). Now array payloads
+  go through the JSON-stringified `content[]` path only (PR #31).
+
+### Changed
+
+- Bumped grouped minor+patch deps (PR #18): see the Dependabot PR
+  for the exact diff. No behavior changes.
+
+### Note on tool count
+
+Total registered tools grew from 104 to 147 (+43): +22 DNS Zones,
++8 `list_*_actions`, +6 server actions, +7 `change_*_protection`
+(landed during v2.0.1). Smoke test asserts 147 across full server
++ per-entry splits (28/21/25/20/17/14/22).
+
 ## [2.0.0] — 2026-05-05
 
 ### Changed
