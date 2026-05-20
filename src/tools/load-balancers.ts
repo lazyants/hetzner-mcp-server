@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { hetznerRequest } from '../services/hetzner.js';
 import { handleToolRequest } from '../helpers.js';
-import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema, NameFilterParam } from '../schemas/common.js';
+import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema, NameFilterParam, SortParam, ActionStatusFilterParam } from '../schemas/common.js';
 
 const HealthCheckHttpSchema = z.object({
   domain: z.string().optional().describe('Domain to send in HTTP Host header'),
@@ -350,6 +350,26 @@ export function registerLoadBalancerTools(server: McpServer): void {
     handleToolRequest(async (params) => {
       const { id, ...body } = params;
       return hetznerRequest('POST', `/load_balancers/${id}/actions/change_protection`, body);
+    })
+  );
+
+  // List load balancer actions
+  server.registerTool(
+    'hetzner_list_load_balancer_actions',
+    {
+      title: 'List Load Balancer Actions',
+      description: 'List all actions performed on a specific load balancer, such as service changes and target attachments.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Load Balancer ID'),
+        ...SortParam,
+        ...ActionStatusFilterParam,
+        ...PaginationParams,
+      }),
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...queryParams } = params;
+      return hetznerRequest('GET', `/load_balancers/${id}/actions`, undefined, queryParams);
     })
   );
 }

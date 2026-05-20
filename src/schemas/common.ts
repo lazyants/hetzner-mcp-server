@@ -20,3 +20,7 @@ export const SortParam = {
 export const NameFilterParam = {
   name: z.string().optional().describe('Filter by name'),
 };
+
+export const ActionStatusFilterParam = {
+  status: z.string().optional().describe('Filter by action status: comma-separated list of "running", "success", "error"'),
+};

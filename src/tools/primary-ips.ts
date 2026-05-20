@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { hetznerRequest } from '../services/hetzner.js';
 import { handleToolRequest } from '../helpers.js';
-import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema } from '../schemas/common.js';
+import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema, SortParam, ActionStatusFilterParam } from '../schemas/common.js';
 
 export function registerPrimaryIpTools(server: McpServer): void {
   // List primary IPs
@@ -156,6 +156,26 @@ export function registerPrimaryIpTools(server: McpServer): void {
     handleToolRequest(async (params) => {
       const { id, ...body } = params;
       return hetznerRequest('POST', `/primary_ips/${id}/actions/change_protection`, body);
+    })
+  );
+
+  // List primary IP actions
+  server.registerTool(
+    'hetzner_list_primary_ip_actions',
+    {
+      title: 'List Primary IP Actions',
+      description: 'List all actions performed on a specific primary IP, such as assign, unassign, and rDNS changes.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Primary IP ID'),
+        ...SortParam,
+        ...ActionStatusFilterParam,
+        ...PaginationParams,
+      }),
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...queryParams } = params;
+      return hetznerRequest('GET', `/primary_ips/${id}/actions`, undefined, queryParams);
     })
   );
 }
