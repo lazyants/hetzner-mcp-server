@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { hetznerRequest } from '../services/hetzner.js';
 import { handleToolRequest } from '../helpers.js';
-import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema } from '../schemas/common.js';
+import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema, SortParam, ActionStatusFilterParam } from '../schemas/common.js';
 
 export function registerFloatingIpTools(server: McpServer): void {
   // List floating IPs
@@ -154,6 +154,26 @@ export function registerFloatingIpTools(server: McpServer): void {
     handleToolRequest(async (params) => {
       const { id, ...body } = params;
       return hetznerRequest('POST', `/floating_ips/${id}/actions/change_protection`, body);
+    })
+  );
+
+  // List floating IP actions
+  server.registerTool(
+    'hetzner_list_floating_ip_actions',
+    {
+      title: 'List Floating IP Actions',
+      description: 'List all actions performed on a specific floating IP, such as assign, unassign, and rDNS changes.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Floating IP ID'),
+        ...SortParam,
+        ...ActionStatusFilterParam,
+        ...PaginationParams,
+      }),
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...queryParams } = params;
+      return hetznerRequest('GET', `/floating_ips/${id}/actions`, undefined, queryParams);
     })
   );
 }

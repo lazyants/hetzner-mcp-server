@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { hetznerRequest } from '../services/hetzner.js';
 import { handleToolRequest } from '../helpers.js';
-import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema, SortParam } from '../schemas/common.js';
+import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema, SortParam, ActionStatusFilterParam } from '../schemas/common.js';
 
 export function registerImageTools(server: McpServer): void {
   // List images
@@ -108,6 +108,26 @@ export function registerImageTools(server: McpServer): void {
     handleToolRequest(async (params) => {
       const { id, ...body } = params;
       return hetznerRequest('POST', `/images/${id}/actions/change_protection`, body);
+    })
+  );
+
+  // List image actions
+  server.registerTool(
+    'hetzner_list_image_actions',
+    {
+      title: 'List Image Actions',
+      description: 'List all actions performed on a specific image, such as snapshot creation and protection changes.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Image ID'),
+        ...SortParam,
+        ...ActionStatusFilterParam,
+        ...PaginationParams,
+      }),
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...queryParams } = params;
+      return hetznerRequest('GET', `/images/${id}/actions`, undefined, queryParams);
     })
   );
 }

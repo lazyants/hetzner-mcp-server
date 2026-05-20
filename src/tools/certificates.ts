@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { hetznerRequest } from '../services/hetzner.js';
 import { handleToolRequest } from '../helpers.js';
-import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema, NameFilterParam } from '../schemas/common.js';
+import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema, NameFilterParam, SortParam, ActionStatusFilterParam } from '../schemas/common.js';
 
 export function registerCertificateTools(server: McpServer): void {
   server.registerTool(
@@ -94,5 +94,25 @@ export function registerCertificateTools(server: McpServer): void {
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
     handleToolRequest(async (params) => hetznerRequest('POST', `/certificates/${params.id}/actions/retry`))
+  );
+
+  // List certificate actions
+  server.registerTool(
+    'hetzner_list_certificate_actions',
+    {
+      title: 'List Certificate Actions',
+      description: 'List all actions performed on a specific certificate, such as issuance and renewal retries.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Certificate ID'),
+        ...SortParam,
+        ...ActionStatusFilterParam,
+        ...PaginationParams,
+      }),
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...queryParams } = params;
+      return hetznerRequest('GET', `/certificates/${id}/actions`, undefined, queryParams);
+    })
   );
 }

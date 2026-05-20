@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { hetznerRequest } from '../services/hetzner.js';
 import { handleToolRequest } from '../helpers.js';
-import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema, NameFilterParam } from '../schemas/common.js';
+import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema, NameFilterParam, SortParam, ActionStatusFilterParam } from '../schemas/common.js';
 
 export function registerNetworkTools(server: McpServer): void {
   server.registerTool(
@@ -178,6 +178,26 @@ export function registerNetworkTools(server: McpServer): void {
     handleToolRequest(async (params) => {
       const { id, ...body } = params;
       return hetznerRequest('POST', `/networks/${id}/actions/change_protection`, body);
+    })
+  );
+
+  // List network actions
+  server.registerTool(
+    'hetzner_list_network_actions',
+    {
+      title: 'List Network Actions',
+      description: 'List all actions performed on a specific network, such as subnet and route changes.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Network ID'),
+        ...SortParam,
+        ...ActionStatusFilterParam,
+        ...PaginationParams,
+      }),
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...queryParams } = params;
+      return hetznerRequest('GET', `/networks/${id}/actions`, undefined, queryParams);
     })
   );
 }

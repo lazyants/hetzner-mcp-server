@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { hetznerRequest } from '../services/hetzner.js';
 import { handleToolRequest } from '../helpers.js';
-import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema } from '../schemas/common.js';
+import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema, SortParam, ActionStatusFilterParam } from '../schemas/common.js';
 
 export function registerVolumeTools(server: McpServer): void {
   // List volumes
@@ -155,6 +155,26 @@ export function registerVolumeTools(server: McpServer): void {
     handleToolRequest(async (params) => {
       const { id, ...body } = params;
       return hetznerRequest('POST', `/volumes/${id}/actions/change_protection`, body);
+    })
+  );
+
+  // List volume actions
+  server.registerTool(
+    'hetzner_list_volume_actions',
+    {
+      title: 'List Volume Actions',
+      description: 'List all actions performed on a specific volume, such as attach, detach, and resize operations.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Volume ID'),
+        ...SortParam,
+        ...ActionStatusFilterParam,
+        ...PaginationParams,
+      }),
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...queryParams } = params;
+      return hetznerRequest('GET', `/volumes/${id}/actions`, undefined, queryParams);
     })
   );
 }

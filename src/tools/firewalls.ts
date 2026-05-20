@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { hetznerRequest } from '../services/hetzner.js';
 import { handleToolRequest } from '../helpers.js';
-import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema, NameFilterParam } from '../schemas/common.js';
+import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema, NameFilterParam, SortParam, ActionStatusFilterParam } from '../schemas/common.js';
 
 const FirewallRuleSchema = z.object({
   direction: z.enum(['in', 'out']).describe('Direction of traffic: in or out'),
@@ -143,6 +143,26 @@ export function registerFirewallTools(server: McpServer): void {
     handleToolRequest(async (params) => {
       const { id, ...body } = params;
       return hetznerRequest('POST', `/firewalls/${id}/actions/remove_from_resources`, body);
+    })
+  );
+
+  // List firewall actions
+  server.registerTool(
+    'hetzner_list_firewall_actions',
+    {
+      title: 'List Firewall Actions',
+      description: 'List all actions performed on a specific firewall, such as rule and resource attachment changes.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Firewall ID'),
+        ...SortParam,
+        ...ActionStatusFilterParam,
+        ...PaginationParams,
+      }),
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...queryParams } = params;
+      return hetznerRequest('GET', `/firewalls/${id}/actions`, undefined, queryParams);
     })
   );
 }
