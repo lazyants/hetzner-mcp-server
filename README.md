@@ -4,7 +4,7 @@
 
 MCP server for the [Hetzner Cloud API](https://docs.hetzner.cloud/). Manage servers, networks, volumes, firewalls, load balancers, and more through the Model Context Protocol.
 
-**104 tools** across 13 resource domains, with 7 entry points so you can pick the right server for your MCP client's tool limit.
+**147 tools** across 14 resource domains, with 8 entry points so you can pick the right server for your MCP client's tool limit.
 
 ## Installation
 
@@ -32,13 +32,14 @@ Get a token from the [Hetzner Cloud Console](https://console.hetzner.cloud/) und
 
 | Command | Domains | Tools |
 |---|---|---|
-| `hetzner-mcp-server` | All 13 domains | 104 |
-| `hetzner-mcp-servers` | Servers, Datacenters/Locations/Server Types | 22 |
-| `hetzner-mcp-networking` | Networks, Firewalls | 17 |
-| `hetzner-mcp-load-balancers` | Load Balancers, Certificates | 22 |
-| `hetzner-mcp-ips` | Floating IPs, Primary IPs | 16 |
-| `hetzner-mcp-storage` | Volumes, Images | 13 |
+| `hetzner-mcp-server` | All 14 domains | 147 |
+| `hetzner-mcp-servers` | Servers, Datacenters/Locations/Server Types | 28 |
+| `hetzner-mcp-networking` | Networks, Firewalls | 21 |
+| `hetzner-mcp-load-balancers` | Load Balancers, Certificates | 25 |
+| `hetzner-mcp-ips` | Floating IPs, Primary IPs | 20 |
+| `hetzner-mcp-storage` | Volumes, Images | 17 |
 | `hetzner-mcp-config` | SSH Keys, ISOs, Placement Groups | 14 |
+| `hetzner-mcp-dns` | DNS Zones | 22 |
 
 Use split servers to reduce context size — pick only the splits you need.
 
@@ -99,13 +100,13 @@ Add to `claude_desktop_config.json`:
 
 ## Tools
 
-### Servers (16 tools) — servers
+### Servers (22 tools) — servers
 
-`hetzner_list_servers`, `hetzner_get_server`, `hetzner_create_server`, `hetzner_update_server`, `hetzner_delete_server`, `hetzner_power_on`, `hetzner_power_off`, `hetzner_reboot`, `hetzner_reset`, `hetzner_shutdown`, `hetzner_rebuild_server`, `hetzner_resize_server`, `hetzner_enable_rescue`, `hetzner_disable_rescue`, `hetzner_get_server_metrics`, `hetzner_list_server_actions`
+`hetzner_list_servers`, `hetzner_get_server`, `hetzner_create_server`, `hetzner_update_server`, `hetzner_delete_server`, `hetzner_power_on`, `hetzner_power_off`, `hetzner_reboot`, `hetzner_reset`, `hetzner_shutdown`, `hetzner_rebuild_server`, `hetzner_resize_server`, `hetzner_enable_rescue`, `hetzner_disable_rescue`, `hetzner_get_server_metrics`, `hetzner_list_server_actions`, `hetzner_change_server_protection`, `hetzner_request_console`, `hetzner_enable_backup`, `hetzner_disable_backup`, `hetzner_change_alias_ips`, `hetzner_change_dns_ptr`
 
-### Images (5 tools) — storage
+### Images (7 tools) — storage
 
-`hetzner_list_images`, `hetzner_get_image`, `hetzner_update_image`, `hetzner_delete_image`, `hetzner_create_image`
+`hetzner_list_images`, `hetzner_get_image`, `hetzner_update_image`, `hetzner_delete_image`, `hetzner_create_image`, `hetzner_change_image_protection`, `hetzner_list_image_actions`
 
 ### ISOs (4 tools) — config
 
@@ -119,37 +120,41 @@ Add to `claude_desktop_config.json`:
 
 `hetzner_list_datacenters`, `hetzner_get_datacenter`, `hetzner_list_locations`, `hetzner_get_location`, `hetzner_list_server_types`, `hetzner_get_server_type`
 
-### Networks (9 tools) — networking
+### Networks (12 tools) — networking
 
-`hetzner_list_networks`, `hetzner_get_network`, `hetzner_create_network`, `hetzner_update_network`, `hetzner_delete_network`, `hetzner_add_subnet`, `hetzner_delete_subnet`, `hetzner_add_route`, `hetzner_delete_route`
+`hetzner_list_networks`, `hetzner_get_network`, `hetzner_create_network`, `hetzner_update_network`, `hetzner_delete_network`, `hetzner_add_subnet`, `hetzner_delete_subnet`, `hetzner_add_route`, `hetzner_delete_route`, `hetzner_change_network_protection`, `hetzner_change_ip_range`, `hetzner_list_network_actions`
 
-### Firewalls (8 tools) — networking
+### Firewalls (9 tools) — networking
 
-`hetzner_list_firewalls`, `hetzner_get_firewall`, `hetzner_create_firewall`, `hetzner_update_firewall`, `hetzner_delete_firewall`, `hetzner_set_firewall_rules`, `hetzner_apply_firewall`, `hetzner_remove_firewall`
+`hetzner_list_firewalls`, `hetzner_get_firewall`, `hetzner_create_firewall`, `hetzner_update_firewall`, `hetzner_delete_firewall`, `hetzner_set_firewall_rules`, `hetzner_apply_firewall`, `hetzner_remove_firewall`, `hetzner_list_firewall_actions`
 
-### Load Balancers (16 tools) — load-balancers
+### Load Balancers (18 tools) — load-balancers
 
-`hetzner_list_load_balancers`, `hetzner_get_load_balancer`, `hetzner_create_load_balancer`, `hetzner_update_load_balancer`, `hetzner_delete_load_balancer`, `hetzner_add_lb_target`, `hetzner_remove_lb_target`, `hetzner_add_lb_service`, `hetzner_update_lb_service`, `hetzner_delete_lb_service`, `hetzner_change_lb_algorithm`, `hetzner_change_lb_type`, `hetzner_attach_lb_to_network`, `hetzner_detach_lb_from_network`, `hetzner_get_lb_metrics`, `hetzner_list_lb_types`
+`hetzner_list_load_balancers`, `hetzner_get_load_balancer`, `hetzner_create_load_balancer`, `hetzner_update_load_balancer`, `hetzner_delete_load_balancer`, `hetzner_add_lb_target`, `hetzner_remove_lb_target`, `hetzner_add_lb_service`, `hetzner_update_lb_service`, `hetzner_delete_lb_service`, `hetzner_change_lb_algorithm`, `hetzner_change_lb_type`, `hetzner_attach_lb_to_network`, `hetzner_detach_lb_from_network`, `hetzner_get_lb_metrics`, `hetzner_list_lb_types`, `hetzner_change_load_balancer_protection`, `hetzner_list_load_balancer_actions`
 
-### Certificates (6 tools) — load-balancers
+### Certificates (7 tools) — load-balancers
 
-`hetzner_list_certificates`, `hetzner_get_certificate`, `hetzner_create_certificate`, `hetzner_update_certificate`, `hetzner_delete_certificate`, `hetzner_retry_certificate`
+`hetzner_list_certificates`, `hetzner_get_certificate`, `hetzner_create_certificate`, `hetzner_update_certificate`, `hetzner_delete_certificate`, `hetzner_retry_certificate`, `hetzner_list_certificate_actions`
 
-### Volumes (8 tools) — storage
+### Volumes (10 tools) — storage
 
-`hetzner_list_volumes`, `hetzner_get_volume`, `hetzner_create_volume`, `hetzner_update_volume`, `hetzner_delete_volume`, `hetzner_attach_volume`, `hetzner_detach_volume`, `hetzner_resize_volume`
+`hetzner_list_volumes`, `hetzner_get_volume`, `hetzner_create_volume`, `hetzner_update_volume`, `hetzner_delete_volume`, `hetzner_attach_volume`, `hetzner_detach_volume`, `hetzner_resize_volume`, `hetzner_change_volume_protection`, `hetzner_list_volume_actions`
 
-### Floating IPs (8 tools) — ips
+### Floating IPs (10 tools) — ips
 
-`hetzner_list_floating_ips`, `hetzner_get_floating_ip`, `hetzner_create_floating_ip`, `hetzner_update_floating_ip`, `hetzner_delete_floating_ip`, `hetzner_assign_floating_ip`, `hetzner_unassign_floating_ip`, `hetzner_change_floating_ip_rdns`
+`hetzner_list_floating_ips`, `hetzner_get_floating_ip`, `hetzner_create_floating_ip`, `hetzner_update_floating_ip`, `hetzner_delete_floating_ip`, `hetzner_assign_floating_ip`, `hetzner_unassign_floating_ip`, `hetzner_change_floating_ip_rdns`, `hetzner_change_floating_ip_protection`, `hetzner_list_floating_ip_actions`
 
-### Primary IPs (8 tools) — ips
+### Primary IPs (10 tools) — ips
 
-`hetzner_list_primary_ips`, `hetzner_get_primary_ip`, `hetzner_create_primary_ip`, `hetzner_update_primary_ip`, `hetzner_delete_primary_ip`, `hetzner_assign_primary_ip`, `hetzner_unassign_primary_ip`, `hetzner_change_primary_ip_rdns`
+`hetzner_list_primary_ips`, `hetzner_get_primary_ip`, `hetzner_create_primary_ip`, `hetzner_update_primary_ip`, `hetzner_delete_primary_ip`, `hetzner_assign_primary_ip`, `hetzner_unassign_primary_ip`, `hetzner_change_primary_ip_rdns`, `hetzner_change_primary_ip_protection`, `hetzner_list_primary_ip_actions`
 
 ### SSH Keys (5 tools) — config
 
 `hetzner_list_ssh_keys`, `hetzner_get_ssh_key`, `hetzner_create_ssh_key`, `hetzner_update_ssh_key`, `hetzner_delete_ssh_key`
+
+### DNS Zones (22 tools) — dns
+
+`hetzner_list_zones`, `hetzner_get_zone`, `hetzner_create_zone`, `hetzner_update_zone`, `hetzner_delete_zone`, `hetzner_change_zone_protection`, `hetzner_change_zone_ttl`, `hetzner_change_zone_primary_nameservers`, `hetzner_export_zonefile`, `hetzner_import_zonefile`, `hetzner_list_zone_actions`, `hetzner_list_zone_rrsets`, `hetzner_get_zone_rrset`, `hetzner_create_zone_rrset`, `hetzner_update_zone_rrset`, `hetzner_delete_zone_rrset`, `hetzner_change_zone_rrset_protection`, `hetzner_change_zone_rrset_ttl`, `hetzner_add_zone_rrset_records`, `hetzner_remove_zone_rrset_records`, `hetzner_set_zone_rrset_records`, `hetzner_update_zone_rrset_records`
 
 ## Security
 
