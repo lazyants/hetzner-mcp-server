@@ -69,34 +69,18 @@ describe('miscellaneous server + network actions — path and body shape', () =>
     });
   });
 
-  it('hetzner_enable_backup: POST /servers/{id}/actions/enable_backup with backup_window in body', async () => {
+  it('hetzner_enable_backup: POST /servers/{id}/actions/enable_backup (no body)', async () => {
     const { McpServerCls } = await loadFreshServer();
     const { registerServerTools } = await import('../../tools/servers.js');
     const server = new McpServerCls({ name: 't', version: '0.0.0' });
     registerServerTools(server);
 
-    await callTool(server, 'hetzner_enable_backup', { id: 7, backup_window: '22-02' });
+    await callTool(server, 'hetzner_enable_backup', { id: 7 });
 
     expect(mockRequest).toHaveBeenCalledWith({
       method: 'POST',
       url: '/servers/7/actions/enable_backup',
-      data: { backup_window: '22-02' },
-      params: undefined,
-    });
-  });
-
-  it('hetzner_enable_backup: POST /servers/{id}/actions/enable_backup with empty body when backup_window omitted', async () => {
-    const { McpServerCls } = await loadFreshServer();
-    const { registerServerTools } = await import('../../tools/servers.js');
-    const server = new McpServerCls({ name: 't', version: '0.0.0' });
-    registerServerTools(server);
-
-    await callTool(server, 'hetzner_enable_backup', { id: 8 });
-
-    expect(mockRequest).toHaveBeenCalledWith({
-      method: 'POST',
-      url: '/servers/8/actions/enable_backup',
-      data: {},
+      data: undefined,
       params: undefined,
     });
   });

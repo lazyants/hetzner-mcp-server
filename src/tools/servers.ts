@@ -319,17 +319,13 @@ export function registerServerTools(server: McpServer): void {
     'hetzner_enable_backup',
     {
       title: 'Enable Server Backup',
-      description: 'Enable automatic daily backups for a server. Backups increase the server price by 20 percent.',
+      description: 'Enable automatic daily backups for a server. Backups increase the server price by 20 percent. The backup window is chosen automatically.',
       inputSchema: z.object({
         id: IdSchema.describe('Server ID'),
-        backup_window: z.string().optional().describe('Deprecated by Hetzner: the backup window (e.g. "22-02") is ignored by the API and will be picked automatically'),
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    handleToolRequest(async (params) => {
-      const { id, ...body } = params;
-      return hetznerRequest('POST', `/servers/${id}/actions/enable_backup`, body);
-    })
+    handleToolRequest(async (params) => hetznerRequest('POST', `/servers/${params.id}/actions/enable_backup`))
   );
 
   // Disable backup
