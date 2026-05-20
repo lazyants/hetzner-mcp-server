@@ -334,4 +334,22 @@ export function registerLoadBalancerTools(server: McpServer): void {
     },
     handleToolRequest(async (params) => hetznerRequest('GET', '/load_balancer_types', undefined, params))
   );
+
+  // Change load balancer protection
+  server.registerTool(
+    'hetzner_change_load_balancer_protection',
+    {
+      title: 'Change Load Balancer Protection',
+      description: 'Enable or disable delete protection on a load balancer to guard against accidental destruction.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Load Balancer ID'),
+        delete: z.boolean().optional().describe('If true, prevents the load balancer from being deleted'),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/load_balancers/${id}/actions/change_protection`, body);
+    })
+  );
 }

@@ -139,4 +139,22 @@ export function registerVolumeTools(server: McpServer): void {
       return hetznerRequest('POST', `/volumes/${id}/actions/resize`, body);
     })
   );
+
+  // Change volume protection
+  server.registerTool(
+    'hetzner_change_volume_protection',
+    {
+      title: 'Change Volume Protection',
+      description: 'Enable or disable delete protection on a volume to guard against accidental destruction.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Volume ID'),
+        delete: z.boolean().optional().describe('If true, prevents the volume from being deleted'),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/volumes/${id}/actions/change_protection`, body);
+    })
+  );
 }

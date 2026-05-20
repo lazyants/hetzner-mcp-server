@@ -162,4 +162,22 @@ export function registerNetworkTools(server: McpServer): void {
       return hetznerRequest('POST', `/networks/${id}/actions/delete_route`, body);
     })
   );
+
+  // Change network protection
+  server.registerTool(
+    'hetzner_change_network_protection',
+    {
+      title: 'Change Network Protection',
+      description: 'Enable or disable delete protection on a network to guard against accidental destruction.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Network ID'),
+        delete: z.boolean().optional().describe('If true, prevents the network from being deleted'),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/networks/${id}/actions/change_protection`, body);
+    })
+  );
 }
