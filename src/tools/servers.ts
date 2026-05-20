@@ -299,4 +299,88 @@ export function registerServerTools(server: McpServer): void {
       return hetznerRequest('POST', `/servers/${id}/actions/change_protection`, body);
     })
   );
+
+  // Request console
+  server.registerTool(
+    'hetzner_request_console',
+    {
+      title: 'Request Server Console',
+      description: 'Request a noVNC WebSocket URL and credentials to access the server console. The URL is valid for a limited time.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Server ID'),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => hetznerRequest('POST', `/servers/${params.id}/actions/request_console`))
+  );
+
+  // Enable backup
+  server.registerTool(
+    'hetzner_enable_backup',
+    {
+      title: 'Enable Server Backup',
+      description: 'Enable automatic daily backups for a server. Backups increase the server price by 20 percent.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Server ID'),
+        backup_window: z.string().optional().describe('Deprecated by Hetzner: the backup window (e.g. "22-02") is ignored by the API and will be picked automatically'),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/servers/${id}/actions/enable_backup`, body);
+    })
+  );
+
+  // Disable backup
+  server.registerTool(
+    'hetzner_disable_backup',
+    {
+      title: 'Disable Server Backup',
+      description: 'Disable automatic backups for a server and remove all existing backup snapshots.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Server ID'),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => hetznerRequest('POST', `/servers/${params.id}/actions/disable_backup`))
+  );
+
+  // Change alias IPs
+  server.registerTool(
+    'hetzner_change_alias_ips',
+    {
+      title: 'Change Server Alias IPs',
+      description: 'Replace the alias IPs that a server has on a private network. The list overrides any existing alias IPs for that network.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Server ID'),
+        network: z.number().int().positive().describe('ID of the network the server is attached to'),
+        alias_ips: z.array(z.string()).describe('Full list of alias IPs to set on the network (replaces existing). Pass [] to clear.'),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/servers/${id}/actions/change_alias_ips`, body);
+    })
+  );
+
+  // Change server reverse DNS
+  server.registerTool(
+    'hetzner_change_dns_ptr',
+    {
+      title: 'Change Server Reverse DNS',
+      description: 'Change the reverse DNS entry for one of a server\'s public IPv4 or IPv6 addresses. Set dns_ptr to null to reset to the default.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Server ID'),
+        ip: z.string().describe('Public IPv4 or IPv6 address of the server to set the reverse DNS entry for'),
+        dns_ptr: z.string().nullable().describe('Reverse DNS PTR record value, or null to reset to the default'),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/servers/${id}/actions/change_dns_ptr`, body);
+    })
+  );
 }

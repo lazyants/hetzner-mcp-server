@@ -26,7 +26,7 @@ function freshServer(name = 'test-server'): McpServer {
 }
 
 describe('Tool registration smoke tests', () => {
-  it('registers all 141 tools for full server', () => {
+  it('registers all 147 tools for full server', () => {
     const server = freshServer();
     registerServerTools(server);
     registerImageTools(server);
@@ -42,21 +42,21 @@ describe('Tool registration smoke tests', () => {
     registerPrimaryIpTools(server);
     registerSshKeyTools(server);
     registerDnsZoneTools(server);
-    expect(toolCount(server)).toBe(141);
+    expect(toolCount(server)).toBe(147);
   });
 
-  it('registers 23 tools for servers split', () => {
+  it('registers 28 tools for servers split', () => {
     const server = freshServer();
     registerServerTools(server);
     registerDatacenterTools(server);
-    expect(toolCount(server)).toBe(23);
+    expect(toolCount(server)).toBe(28);
   });
 
-  it('registers 20 tools for networking split', () => {
+  it('registers 21 tools for networking split', () => {
     const server = freshServer();
     registerNetworkTools(server);
     registerFirewallTools(server);
-    expect(toolCount(server)).toBe(20);
+    expect(toolCount(server)).toBe(21);
   });
 
   it('registers 25 tools for load-balancers split', () => {
