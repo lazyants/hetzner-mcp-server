@@ -52,6 +52,13 @@ describe('formatResponse', () => {
     });
     expect(result).not.toHaveProperty('structuredContent');
   });
+
+  it('omits structuredContent for arrays (MCP SDK rejects arrays there)', () => {
+    const data = [{ id: 1 }, { id: 2 }];
+    const result = formatResponse(data);
+    expect(result.content).toEqual([{ type: 'text', text: JSON.stringify(data, null, 2) }]);
+    expect(result).not.toHaveProperty('structuredContent');
+  });
 });
 
 describe('handleToolRequest', () => {
