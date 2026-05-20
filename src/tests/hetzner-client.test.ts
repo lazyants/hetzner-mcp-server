@@ -480,4 +480,26 @@ describe('Client configuration', () => {
       expect.objectContaining({ timeout: 30_000 })
     );
   });
+
+  it('configures paramsSerializer to emit repeated keys for array params (Hetzner does not accept type[]=A)', async () => {
+    const mockCreate = vi.fn(() => ({
+      interceptors: { response: { use: vi.fn() } },
+      request: vi.fn().mockResolvedValue({ data: {} }),
+    }));
+
+    vi.doMock('axios', async (importOriginal) => {
+      const actual = await importOriginal<typeof import('axios')>();
+      return {
+        ...actual,
+        default: { ...actual.default, create: mockCreate },
+      };
+    });
+
+    const { hetznerRequest } = await import('../services/hetzner.js');
+    await hetznerRequest('GET', '/test');
+
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ paramsSerializer: { indexes: null } })
+    );
+  });
 });

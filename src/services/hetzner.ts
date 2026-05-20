@@ -24,6 +24,10 @@ function createClient(): AxiosInstance {
       Authorization: `Bearer ${getToken()}`,
       'Content-Type': 'application/json',
     },
+    // Hetzner expects repeated keys for array query params (e.g.
+    // `?type=A&type=AAAA`). Axios's default emits `type[]=A&type[]=AAAA`,
+    // which Hetzner ignores. `indexes: null` switches to repeated keys.
+    paramsSerializer: { indexes: null },
   });
 
   client.interceptors.response.use(
