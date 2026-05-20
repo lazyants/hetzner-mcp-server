@@ -13,6 +13,7 @@ import { registerVolumeTools } from './tools/volumes.js';
 import { registerFloatingIpTools } from './tools/floating-ips.js';
 import { registerPrimaryIpTools } from './tools/primary-ips.js';
 import { registerSshKeyTools } from './tools/ssh-keys.js';
+import { registerDnsZoneTools } from './tools/zones.js';
 
 const server = createServer('hetzner-mcp-server');
 
@@ -34,6 +35,9 @@ registerVolumeTools(server);
 registerFloatingIpTools(server);
 registerPrimaryIpTools(server);
 registerSshKeyTools(server);
+
+// DNS
+registerDnsZoneTools(server);
 
 startServer(server).catch((err) => {
   console.error('Fatal:', err);
