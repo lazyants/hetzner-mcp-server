@@ -17,7 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the Hetzner DNS Zones API (zones CRUD, RRSets CRUD,
   primary-nameserver changes, protection, TTL changes, zonefile
   import/export). Wraps the GA Nov 2025 surface on the existing
-  `api.hetzner.cloud` baseURL + token.
+  `api.hetzner.cloud` baseURL + token (PR #24).
+- **`change_*_protection` across 7 resources**: servers, load
+  balancers, volumes, networks, floating IPs, primary IPs, images.
+  Adds the data-loss guard rails the API has supported for years
+  but were never wrapped (PR #21).
 - **Per-resource `list_*_actions` for 8 resources**: load balancers,
   volumes, floating IPs, primary IPs, networks, firewalls,
   certificates, images (PR #23). Replaces the global `/actions`
@@ -34,6 +38,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README tool counts updated to reflect the 147-tool surface
   (PR #27).
 
+### Changed
+
+- **Migrated to Zod 4** (`zod ^4.4.3`). Brings hetzner into line
+  with `@lazyants/lexware-mcp-server` and
+  `@lazyants/transkribus-mcp-server` (both already on Zod 4 since
+  their 2.0.1). All `z.record(z.unknown())` call sites updated to
+  the Zod-4 two-argument form `z.record(z.string(), z.unknown())`.
+  Runtime-verified `.describe()` propagation and `tools/list`
+  `required[]` correctness on the full schema surface (PR #22).
+- Bumped grouped minor+patch deps (PR #18): see the Dependabot PR
+  for the exact diff. No behavior changes.
+
 ### Fixed
 
 - `formatResponse` no longer sets `structuredContent` for array
@@ -42,17 +58,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   array (e.g. paginated `list_*` shortcuts). Now array payloads
   go through the JSON-stringified `content[]` path only (PR #31).
 
-### Changed
-
-- Bumped grouped minor+patch deps (PR #18): see the Dependabot PR
-  for the exact diff. No behavior changes.
-
 ### Note on tool count
 
-Total registered tools grew from 104 to 147 (+43): +22 DNS Zones,
-+8 `list_*_actions`, +6 server actions, +7 `change_*_protection`
-(landed during v2.0.1). Smoke test asserts 147 across full server
-+ per-entry splits (28/21/25/20/17/14/22).
+Total registered tools grew from 104 to 147 (+43): +22 DNS Zones
+(PR #24), +8 `list_*_actions` (PR #23), +6 server/network actions
+(PR #25), +7 `change_*_protection` (PR #21). Smoke test asserts
+147 across full server + per-entry splits (28/21/25/20/17/14/22).
 
 ## [2.0.0] — 2026-05-05
 
