@@ -4,7 +4,7 @@
 
 MCP server for the [Hetzner Cloud API](https://docs.hetzner.cloud/). Manage servers, networks, volumes, firewalls, load balancers, and more through the Model Context Protocol.
 
-**147 tools** across 14 resource domains, with 8 entry points so you can pick the right server for your MCP client's tool limit.
+**156 tools** across 14 resource domains, with 8 entry points so you can pick the right server for your MCP client's tool limit. A read-only API-reference Resource (`reference://hetzner/api`) is also exposed on every entry point.
 
 ## Installation
 
@@ -32,10 +32,10 @@ Get a token from the [Hetzner Cloud Console](https://console.hetzner.cloud/) und
 
 | Command | Domains | Tools |
 |---|---|---|
-| `hetzner-mcp-server` | All 14 domains | 147 |
-| `hetzner-mcp-servers` | Servers, Datacenters/Locations/Server Types | 28 |
+| `hetzner-mcp-server` | All 14 domains | 156 |
+| `hetzner-mcp-servers` | Servers, Datacenters/Locations/Server Types, Pricing | 34 |
 | `hetzner-mcp-networking` | Networks, Firewalls | 21 |
-| `hetzner-mcp-load-balancers` | Load Balancers, Certificates | 25 |
+| `hetzner-mcp-load-balancers` | Load Balancers, Certificates | 28 |
 | `hetzner-mcp-ips` | Floating IPs, Primary IPs | 20 |
 | `hetzner-mcp-storage` | Volumes, Images | 17 |
 | `hetzner-mcp-config` | SSH Keys, ISOs, Placement Groups | 14 |
@@ -100,9 +100,9 @@ Add to `claude_desktop_config.json`:
 
 ## Tools
 
-### Servers (22 tools) — servers
+### Servers (27 tools) — servers
 
-`hetzner_list_servers`, `hetzner_get_server`, `hetzner_create_server`, `hetzner_update_server`, `hetzner_delete_server`, `hetzner_power_on`, `hetzner_power_off`, `hetzner_reboot`, `hetzner_reset`, `hetzner_shutdown`, `hetzner_rebuild_server`, `hetzner_resize_server`, `hetzner_enable_rescue`, `hetzner_disable_rescue`, `hetzner_get_server_metrics`, `hetzner_list_server_actions`, `hetzner_change_server_protection`, `hetzner_request_console`, `hetzner_enable_backup`, `hetzner_disable_backup`, `hetzner_change_alias_ips`, `hetzner_change_dns_ptr`
+`hetzner_list_servers`, `hetzner_get_server`, `hetzner_create_server`, `hetzner_update_server`, `hetzner_delete_server`, `hetzner_power_on`, `hetzner_power_off`, `hetzner_reboot`, `hetzner_reset`, `hetzner_shutdown`, `hetzner_rebuild_server`, `hetzner_resize_server`, `hetzner_enable_rescue`, `hetzner_disable_rescue`, `hetzner_get_server_metrics`, `hetzner_list_server_actions`, `hetzner_change_server_protection`, `hetzner_request_console`, `hetzner_enable_backup`, `hetzner_disable_backup`, `hetzner_change_alias_ips`, `hetzner_change_dns_ptr`, `hetzner_attach_server_to_network`, `hetzner_detach_server_from_network`, `hetzner_add_server_to_placement_group`, `hetzner_remove_server_from_placement_group`, `hetzner_reset_server_password`
 
 ### Images (7 tools) — storage
 
@@ -116,9 +116,9 @@ Add to `claude_desktop_config.json`:
 
 `hetzner_list_placement_groups`, `hetzner_get_placement_group`, `hetzner_create_placement_group`, `hetzner_update_placement_group`, `hetzner_delete_placement_group`
 
-### Reference Data (6 tools) — servers
+### Reference Data (7 tools) — servers
 
-`hetzner_list_datacenters`, `hetzner_get_datacenter`, `hetzner_list_locations`, `hetzner_get_location`, `hetzner_list_server_types`, `hetzner_get_server_type`
+`hetzner_list_datacenters`, `hetzner_get_datacenter`, `hetzner_list_locations`, `hetzner_get_location`, `hetzner_list_server_types`, `hetzner_get_server_type`, `hetzner_get_pricing`
 
 ### Networks (12 tools) — networking
 
@@ -128,9 +128,9 @@ Add to `claude_desktop_config.json`:
 
 `hetzner_list_firewalls`, `hetzner_get_firewall`, `hetzner_create_firewall`, `hetzner_update_firewall`, `hetzner_delete_firewall`, `hetzner_set_firewall_rules`, `hetzner_apply_firewall`, `hetzner_remove_firewall`, `hetzner_list_firewall_actions`
 
-### Load Balancers (18 tools) — load-balancers
+### Load Balancers (21 tools) — load-balancers
 
-`hetzner_list_load_balancers`, `hetzner_get_load_balancer`, `hetzner_create_load_balancer`, `hetzner_update_load_balancer`, `hetzner_delete_load_balancer`, `hetzner_add_lb_target`, `hetzner_remove_lb_target`, `hetzner_add_lb_service`, `hetzner_update_lb_service`, `hetzner_delete_lb_service`, `hetzner_change_lb_algorithm`, `hetzner_change_lb_type`, `hetzner_attach_lb_to_network`, `hetzner_detach_lb_from_network`, `hetzner_get_lb_metrics`, `hetzner_list_lb_types`, `hetzner_change_load_balancer_protection`, `hetzner_list_load_balancer_actions`
+`hetzner_list_load_balancers`, `hetzner_get_load_balancer`, `hetzner_create_load_balancer`, `hetzner_update_load_balancer`, `hetzner_delete_load_balancer`, `hetzner_add_lb_target`, `hetzner_remove_lb_target`, `hetzner_add_lb_service`, `hetzner_update_lb_service`, `hetzner_delete_lb_service`, `hetzner_change_lb_algorithm`, `hetzner_change_lb_type`, `hetzner_attach_lb_to_network`, `hetzner_detach_lb_from_network`, `hetzner_get_lb_metrics`, `hetzner_list_lb_types`, `hetzner_change_load_balancer_protection`, `hetzner_list_load_balancer_actions`, `hetzner_enable_lb_public_interface`, `hetzner_disable_lb_public_interface`, `hetzner_change_lb_dns_ptr`
 
 ### Certificates (7 tools) — load-balancers
 

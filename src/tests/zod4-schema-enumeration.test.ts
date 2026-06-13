@@ -15,6 +15,8 @@ import { registerVolumeTools } from '../tools/volumes.js';
 import { registerFloatingIpTools } from '../tools/floating-ips.js';
 import { registerPrimaryIpTools } from '../tools/primary-ips.js';
 import { registerSshKeyTools } from '../tools/ssh-keys.js';
+import { registerDnsZoneTools } from '../tools/zones.js';
+import { registerPricingTools } from '../tools/pricing.js';
 
 /**
  * Regression guard against the Zod 4 `optin: "optional"` silent-drop bug
@@ -64,6 +66,8 @@ function buildFullServer(): McpServer {
   registerFloatingIpTools(server);
   registerPrimaryIpTools(server);
   registerSshKeyTools(server);
+  registerDnsZoneTools(server);
+  registerPricingTools(server);
   return server;
 }
 

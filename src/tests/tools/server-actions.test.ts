@@ -199,4 +199,116 @@ describe('miscellaneous server + network actions — path and body shape', () =>
       params: undefined,
     });
   });
+
+  it('hetzner_attach_server_to_network: POST /servers/{id}/actions/attach_to_network with network + ip + alias_ips + ip_range', async () => {
+    const { McpServerCls } = await loadFreshServer();
+    const { registerServerTools } = await import('../../tools/servers.js');
+    const server = new McpServerCls({ name: 't', version: '0.0.0' });
+    registerServerTools(server);
+
+    await callTool(server, 'hetzner_attach_server_to_network', {
+      id: 42,
+      network: 4711,
+      ip: '10.0.0.5',
+      alias_ips: ['10.0.0.6'],
+      ip_range: '10.0.1.0/24',
+    });
+
+    expect(mockRequest).toHaveBeenCalledWith({
+      method: 'POST',
+      url: '/servers/42/actions/attach_to_network',
+      data: { network: 4711, ip: '10.0.0.5', alias_ips: ['10.0.0.6'], ip_range: '10.0.1.0/24' },
+      params: undefined,
+    });
+  });
+
+  it('hetzner_attach_server_to_network: forwards only the required network when optional fields omitted', async () => {
+    const { McpServerCls } = await loadFreshServer();
+    const { registerServerTools } = await import('../../tools/servers.js');
+    const server = new McpServerCls({ name: 't', version: '0.0.0' });
+    registerServerTools(server);
+
+    await callTool(server, 'hetzner_attach_server_to_network', { id: 43, network: 4712 });
+
+    expect(mockRequest).toHaveBeenCalledWith({
+      method: 'POST',
+      url: '/servers/43/actions/attach_to_network',
+      data: { network: 4712 },
+      params: undefined,
+    });
+  });
+
+  it('hetzner_detach_server_from_network: POST /servers/{id}/actions/detach_from_network with network', async () => {
+    const { McpServerCls } = await loadFreshServer();
+    const { registerServerTools } = await import('../../tools/servers.js');
+    const server = new McpServerCls({ name: 't', version: '0.0.0' });
+    registerServerTools(server);
+
+    await callTool(server, 'hetzner_detach_server_from_network', { id: 42, network: 4711 });
+
+    expect(mockRequest).toHaveBeenCalledWith({
+      method: 'POST',
+      url: '/servers/42/actions/detach_from_network',
+      data: { network: 4711 },
+      params: undefined,
+    });
+  });
+
+  it('hetzner_add_server_to_placement_group: POST /servers/{id}/actions/add_to_placement_group with placement_group', async () => {
+    const { McpServerCls } = await loadFreshServer();
+    const { registerServerTools } = await import('../../tools/servers.js');
+    const server = new McpServerCls({ name: 't', version: '0.0.0' });
+    registerServerTools(server);
+
+    await callTool(server, 'hetzner_add_server_to_placement_group', { id: 42, placement_group: 909 });
+
+    expect(mockRequest).toHaveBeenCalledWith({
+      method: 'POST',
+      url: '/servers/42/actions/add_to_placement_group',
+      data: { placement_group: 909 },
+      params: undefined,
+    });
+  });
+
+  it('hetzner_remove_server_from_placement_group: POST /servers/{id}/actions/remove_from_placement_group (no body)', async () => {
+    const { McpServerCls } = await loadFreshServer();
+    const { registerServerTools } = await import('../../tools/servers.js');
+    const server = new McpServerCls({ name: 't', version: '0.0.0' });
+    registerServerTools(server);
+
+    await callTool(server, 'hetzner_remove_server_from_placement_group', { id: 42 });
+
+    expect(mockRequest).toHaveBeenCalledWith({
+      method: 'POST',
+      url: '/servers/42/actions/remove_from_placement_group',
+      data: undefined,
+      params: undefined,
+    });
+  });
+
+  it('hetzner_reset_server_password: POST /servers/{id}/actions/reset_password (no body) and surfaces root_password', async () => {
+    const { McpServerCls } = await loadFreshServer();
+    // Reset-password returns a one-time root_password alongside the action.
+    mockRequest.mockResolvedValueOnce({
+      data: { action: { id: 9, status: 'running' }, root_password: 'zaq1XSW@cde3' },
+    });
+    const { registerServerTools } = await import('../../tools/servers.js');
+    const server = new McpServerCls({ name: 't', version: '0.0.0' });
+    registerServerTools(server);
+
+    const result = (await callTool(server, 'hetzner_reset_server_password', { id: 42 })) as {
+      content: { text: string }[];
+      structuredContent?: { root_password?: string };
+    };
+
+    expect(mockRequest).toHaveBeenCalledWith({
+      method: 'POST',
+      url: '/servers/42/actions/reset_password',
+      data: undefined,
+      params: undefined,
+    });
+    // The generated root password must be surfaced to the caller.
+    expect(result.structuredContent?.root_password).toBe('zaq1XSW@cde3');
+    expect(result.content[0].text).toContain('zaq1XSW@cde3');
+  });
 });

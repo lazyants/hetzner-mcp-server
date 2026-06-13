@@ -379,4 +379,89 @@ export function registerServerTools(server: McpServer): void {
       return hetznerRequest('POST', `/servers/${id}/actions/change_dns_ptr`, body);
     })
   );
+
+  // Attach server to network
+  server.registerTool(
+    'hetzner_attach_server_to_network',
+    {
+      title: 'Attach Server to Network',
+      description: 'Attach a server to a private network, optionally assigning a specific IP, alias IPs, or IP range.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Server ID'),
+        network: z.number().int().positive().describe('ID of the network to attach the server to'),
+        ip: z.string().optional().describe('Private IP to assign the server in the network (within the network IP range)'),
+        alias_ips: z.array(z.string()).optional().describe('Additional alias IPs to assign the server on the network'),
+        ip_range: z.string().optional().describe('Subnet IP range (CIDR) to attach to, e.g. "10.0.1.0/24"'),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/servers/${id}/actions/attach_to_network`, body);
+    })
+  );
+
+  // Detach server from network
+  server.registerTool(
+    'hetzner_detach_server_from_network',
+    {
+      title: 'Detach Server from Network',
+      description: 'Detach a server from a private network, removing its private connectivity on that network.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Server ID'),
+        network: z.number().int().positive().describe('ID of the network to detach the server from'),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/servers/${id}/actions/detach_from_network`, body);
+    })
+  );
+
+  // Add server to placement group
+  server.registerTool(
+    'hetzner_add_server_to_placement_group',
+    {
+      title: 'Add Server to Placement Group',
+      description: 'Add a server to a placement group. The server must be powered off before it can be added.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Server ID'),
+        placement_group: z.number().int().positive().describe('ID of the placement group to add the server to'),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/servers/${id}/actions/add_to_placement_group`, body);
+    })
+  );
+
+  // Remove server from placement group
+  server.registerTool(
+    'hetzner_remove_server_from_placement_group',
+    {
+      title: 'Remove Server from Placement Group',
+      description: 'Remove a server from its placement group.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Server ID'),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => hetznerRequest('POST', `/servers/${params.id}/actions/remove_from_placement_group`))
+  );
+
+  // Reset server root password
+  server.registerTool(
+    'hetzner_reset_server_password',
+    {
+      title: 'Reset Server Root Password',
+      description: 'Reset the root password of a server. The server is rebooted and a new root password is returned in the result.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Server ID'),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => hetznerRequest('POST', `/servers/${params.id}/actions/reset_password`))
+  );
 }
