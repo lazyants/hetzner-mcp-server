@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - npm package: [`@lazyants/hetzner-mcp-server`](https://www.npmjs.com/package/@lazyants/hetzner-mcp-server)
 - MCP Registry: [`io.github.lazyants/hetzner`](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.lazyants/hetzner)
 
+## [2.1.1] — 2026-06-13
+
+### Security
+
+- Pinned a `qs` override (`^6.15.2`) to clear the transitive
+  npm-audit DoS advisory (GHSA-q8mj-m7cp-5q26) and reinstate a clean
+  `npm audit` gate. No runtime behavior change (PR #35).
+
+### Changed
+
+- Bumped grouped minor+patch deps (PR #34): lockfile-only refresh of
+  five transitive packages. No behavior changes.
+
 ## [2.1.0] — 2026-05-20
 
 ### Added
@@ -144,6 +157,8 @@ Total registered tools grew from 104 to 147 (+43): +22 DNS Zones
 - Rate-limit handling with exponential backoff (max 3 retries on 429).
 - GitHub Actions test and MCP Registry publish workflows.
 
+[2.1.1]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v2.1.1
+[2.1.0]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v2.1.0
 [2.0.0]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v2.0.0
 [1.1.1]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v1.1.1
 [1.1.0]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v1.1.0
