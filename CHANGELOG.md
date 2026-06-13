@@ -8,6 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - npm package: [`@lazyants/hetzner-mcp-server`](https://www.npmjs.com/package/@lazyants/hetzner-mcp-server)
 - MCP Registry: [`io.github.lazyants/hetzner`](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.lazyants/hetzner)
 
+## [2.2.0] — 2026-06-13
+
+### Added
+
+- **9 new Cloud API tools** (147 → 156): `hetzner_attach_server_to_network`,
+  `hetzner_detach_server_from_network`, `hetzner_add_server_to_placement_group`,
+  `hetzner_remove_server_from_placement_group`, `hetzner_reset_server_password`
+  (surfaces the returned `root_password`), `hetzner_enable_lb_public_interface`,
+  `hetzner_disable_lb_public_interface`, `hetzner_change_lb_dns_ptr`
+  (`dns_ptr` required-and-nullable), and `hetzner_get_pricing` (new
+  `src/tools/pricing.ts` module, `GET /pricing`) (PR #37).
+- **Read-only API-reference Resource** `reference://hetzner/api`
+  (`text/markdown`), embedded as a package-safe compiled string and
+  registered on the main binary plus all 7 split entry points (PR #37).
+
+### Fixed
+
+- `hetzner_attach_lb_to_network` now forwards the optional `ip_range`
+  field to the Hetzner API for spec-compliance (PR #37).
+
 ## [2.1.1] — 2026-06-13
 
 ### Security
@@ -157,6 +177,7 @@ Total registered tools grew from 104 to 147 (+43): +22 DNS Zones
 - Rate-limit handling with exponential backoff (max 3 retries on 429).
 - GitHub Actions test and MCP Registry publish workflows.
 
+[2.2.0]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v2.2.0
 [2.1.1]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v2.1.1
 [2.1.0]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v2.1.0
 [2.0.0]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v2.0.0
