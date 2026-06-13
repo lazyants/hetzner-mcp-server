@@ -276,6 +276,7 @@ export function registerLoadBalancerTools(server: McpServer): void {
         id: IdSchema,
         network: z.number().int().describe('Network ID to attach to'),
         ip: z.string().optional().describe('IP address to assign in the network'),
+        ip_range: z.string().optional().describe('Subnet IP range (CIDR) to attach to, e.g. "10.0.1.0/24"'),
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
@@ -370,6 +371,53 @@ export function registerLoadBalancerTools(server: McpServer): void {
     handleToolRequest(async (params) => {
       const { id, ...queryParams } = params;
       return hetznerRequest('GET', `/load_balancers/${id}/actions`, undefined, queryParams);
+    })
+  );
+
+  // Enable load balancer public interface
+  server.registerTool(
+    'hetzner_enable_lb_public_interface',
+    {
+      title: 'Enable Load Balancer Public Interface',
+      description: 'Enable the public network interface of a load balancer so it can be reached over public IPs.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Load Balancer ID'),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => hetznerRequest('POST', `/load_balancers/${params.id}/actions/enable_public_interface`))
+  );
+
+  // Disable load balancer public interface
+  server.registerTool(
+    'hetzner_disable_lb_public_interface',
+    {
+      title: 'Disable Load Balancer Public Interface',
+      description: 'Disable the public network interface of a load balancer, removing its public connectivity.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Load Balancer ID'),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => hetznerRequest('POST', `/load_balancers/${params.id}/actions/disable_public_interface`))
+  );
+
+  // Change load balancer reverse DNS
+  server.registerTool(
+    'hetzner_change_lb_dns_ptr',
+    {
+      title: 'Change Load Balancer Reverse DNS',
+      description: 'Change the reverse DNS entry for one of a load balancer\'s public IP addresses. Set dns_ptr to null to reset to the default.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Load Balancer ID'),
+        ip: z.string().describe('Public IPv4 or IPv6 address of the load balancer to set the reverse DNS entry for'),
+        dns_ptr: z.string().nullable().describe('Reverse DNS PTR record value, or null to reset to the default'),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...body } = params;
+      return hetznerRequest('POST', `/load_balancers/${id}/actions/change_dns_ptr`, body);
     })
   );
 }

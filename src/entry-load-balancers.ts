@@ -2,11 +2,13 @@
 import { createServer, startServer } from './server.js';
 import { registerLoadBalancerTools } from './tools/load-balancers.js';
 import { registerCertificateTools } from './tools/certificates.js';
+import { registerReferenceResource } from './resources/hetzner-reference.js';
 
 const server = createServer('hetzner-mcp-load-balancers');
 
 registerLoadBalancerTools(server);
 registerCertificateTools(server);
+registerReferenceResource(server);
 
 startServer(server).catch((err) => {
   console.error('Fatal:', err);

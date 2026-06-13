@@ -3,12 +3,14 @@ import { createServer, startServer } from './server.js';
 import { registerSshKeyTools } from './tools/ssh-keys.js';
 import { registerIsoTools } from './tools/isos.js';
 import { registerPlacementGroupTools } from './tools/placement-groups.js';
+import { registerReferenceResource } from './resources/hetzner-reference.js';
 
 const server = createServer('hetzner-mcp-config');
 
 registerSshKeyTools(server);
 registerIsoTools(server);
 registerPlacementGroupTools(server);
+registerReferenceResource(server);
 
 startServer(server).catch((err) => {
   console.error('Fatal:', err);

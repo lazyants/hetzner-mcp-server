@@ -317,4 +317,72 @@ describe('Load Balancers tools — path, method, and body/params shape', () => {
       params: { name: 'lb11', page: 1, per_page: 25 },
     });
   });
+
+  it('hetzner_attach_lb_to_network: forwards ip_range to /actions/attach_to_network', async () => {
+    const server = await setupServer();
+    await callTool(server, 'hetzner_attach_lb_to_network', {
+      id: 7,
+      network: 9001,
+      ip: '10.0.0.5',
+      ip_range: '10.0.1.0/24',
+    });
+    expect(mockRequest).toHaveBeenCalledWith({
+      method: 'POST',
+      url: '/load_balancers/7/actions/attach_to_network',
+      data: { network: 9001, ip: '10.0.0.5', ip_range: '10.0.1.0/24' },
+      params: undefined,
+    });
+  });
+
+  it('hetzner_enable_lb_public_interface: POST /load_balancers/{id}/actions/enable_public_interface (no body)', async () => {
+    const server = await setupServer();
+    await callTool(server, 'hetzner_enable_lb_public_interface', { id: 7 });
+    expect(mockRequest).toHaveBeenCalledWith({
+      method: 'POST',
+      url: '/load_balancers/7/actions/enable_public_interface',
+      data: undefined,
+      params: undefined,
+    });
+  });
+
+  it('hetzner_disable_lb_public_interface: POST /load_balancers/{id}/actions/disable_public_interface (no body)', async () => {
+    const server = await setupServer();
+    await callTool(server, 'hetzner_disable_lb_public_interface', { id: 7 });
+    expect(mockRequest).toHaveBeenCalledWith({
+      method: 'POST',
+      url: '/load_balancers/7/actions/disable_public_interface',
+      data: undefined,
+      params: undefined,
+    });
+  });
+
+  it('hetzner_change_lb_dns_ptr: POST /load_balancers/{id}/actions/change_dns_ptr with ip + dns_ptr', async () => {
+    const server = await setupServer();
+    await callTool(server, 'hetzner_change_lb_dns_ptr', {
+      id: 7,
+      ip: '203.0.113.5',
+      dns_ptr: 'lb.example.com',
+    });
+    expect(mockRequest).toHaveBeenCalledWith({
+      method: 'POST',
+      url: '/load_balancers/7/actions/change_dns_ptr',
+      data: { ip: '203.0.113.5', dns_ptr: 'lb.example.com' },
+      params: undefined,
+    });
+  });
+
+  it('hetzner_change_lb_dns_ptr: accepts dns_ptr: null to reset the PTR record', async () => {
+    const server = await setupServer();
+    await callTool(server, 'hetzner_change_lb_dns_ptr', {
+      id: 7,
+      ip: '203.0.113.6',
+      dns_ptr: null,
+    });
+    expect(mockRequest).toHaveBeenCalledWith({
+      method: 'POST',
+      url: '/load_balancers/7/actions/change_dns_ptr',
+      data: { ip: '203.0.113.6', dns_ptr: null },
+      params: undefined,
+    });
+  });
 });

@@ -14,6 +14,8 @@ import { registerFloatingIpTools } from './tools/floating-ips.js';
 import { registerPrimaryIpTools } from './tools/primary-ips.js';
 import { registerSshKeyTools } from './tools/ssh-keys.js';
 import { registerDnsZoneTools } from './tools/zones.js';
+import { registerPricingTools } from './tools/pricing.js';
+import { registerReferenceResource } from './resources/hetzner-reference.js';
 
 const server = createServer('hetzner-mcp-server');
 
@@ -23,6 +25,7 @@ registerImageTools(server);
 registerIsoTools(server);
 registerPlacementGroupTools(server);
 registerDatacenterTools(server);
+registerPricingTools(server);
 
 // Network
 registerNetworkTools(server);
@@ -38,6 +41,9 @@ registerSshKeyTools(server);
 
 // DNS
 registerDnsZoneTools(server);
+
+// API-reference Resource
+registerReferenceResource(server);
 
 startServer(server).catch((err) => {
   console.error('Fatal:', err);

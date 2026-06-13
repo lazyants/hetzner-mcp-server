@@ -15,6 +15,7 @@ import { registerFloatingIpTools } from '../tools/floating-ips.js';
 import { registerPrimaryIpTools } from '../tools/primary-ips.js';
 import { registerSshKeyTools } from '../tools/ssh-keys.js';
 import { registerDnsZoneTools } from '../tools/zones.js';
+import { registerPricingTools } from '../tools/pricing.js';
 
 function toolCount(server: McpServer): number {
   // _registeredTools is a plain object keyed by tool name
@@ -26,13 +27,14 @@ function freshServer(name = 'test-server'): McpServer {
 }
 
 describe('Tool registration smoke tests', () => {
-  it('registers all 147 tools for full server', () => {
+  it('registers all 156 tools for full server', () => {
     const server = freshServer();
     registerServerTools(server);
     registerImageTools(server);
     registerIsoTools(server);
     registerPlacementGroupTools(server);
     registerDatacenterTools(server);
+    registerPricingTools(server);
     registerNetworkTools(server);
     registerFirewallTools(server);
     registerLoadBalancerTools(server);
@@ -42,14 +44,15 @@ describe('Tool registration smoke tests', () => {
     registerPrimaryIpTools(server);
     registerSshKeyTools(server);
     registerDnsZoneTools(server);
-    expect(toolCount(server)).toBe(147);
+    expect(toolCount(server)).toBe(156);
   });
 
-  it('registers 28 tools for servers split', () => {
+  it('registers 34 tools for servers split', () => {
     const server = freshServer();
     registerServerTools(server);
     registerDatacenterTools(server);
-    expect(toolCount(server)).toBe(28);
+    registerPricingTools(server);
+    expect(toolCount(server)).toBe(34);
   });
 
   it('registers 21 tools for networking split', () => {
@@ -59,11 +62,11 @@ describe('Tool registration smoke tests', () => {
     expect(toolCount(server)).toBe(21);
   });
 
-  it('registers 25 tools for load-balancers split', () => {
+  it('registers 28 tools for load-balancers split', () => {
     const server = freshServer();
     registerLoadBalancerTools(server);
     registerCertificateTools(server);
-    expect(toolCount(server)).toBe(25);
+    expect(toolCount(server)).toBe(28);
   });
 
   it('registers 20 tools for ips split', () => {
