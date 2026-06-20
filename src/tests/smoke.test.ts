@@ -16,6 +16,7 @@ import { registerPrimaryIpTools } from '../tools/primary-ips.js';
 import { registerSshKeyTools } from '../tools/ssh-keys.js';
 import { registerDnsZoneTools } from '../tools/zones.js';
 import { registerPricingTools } from '../tools/pricing.js';
+import { registerStorageBoxTools } from '../tools/storage-boxes.js';
 
 function toolCount(server: McpServer): number {
   // _registeredTools is a plain object keyed by tool name
@@ -27,7 +28,7 @@ function freshServer(name = 'test-server'): McpServer {
 }
 
 describe('Tool registration smoke tests', () => {
-  it('registers all 156 tools for full server', () => {
+  it('registers all 185 tools for full server', () => {
     const server = freshServer();
     registerServerTools(server);
     registerImageTools(server);
@@ -43,8 +44,9 @@ describe('Tool registration smoke tests', () => {
     registerFloatingIpTools(server);
     registerPrimaryIpTools(server);
     registerSshKeyTools(server);
+    registerStorageBoxTools(server);
     registerDnsZoneTools(server);
-    expect(toolCount(server)).toBe(156);
+    expect(toolCount(server)).toBe(185);
   });
 
   it('registers 34 tools for servers split', () => {
@@ -95,5 +97,11 @@ describe('Tool registration smoke tests', () => {
     const server = freshServer();
     registerDnsZoneTools(server);
     expect(toolCount(server)).toBe(22);
+  });
+
+  it('registers 29 tools for storage-boxes split', () => {
+    const server = freshServer();
+    registerStorageBoxTools(server);
+    expect(toolCount(server)).toBe(29);
   });
 });

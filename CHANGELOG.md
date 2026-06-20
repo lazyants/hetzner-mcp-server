@@ -8,6 +8,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - npm package: [`@lazyants/hetzner-mcp-server`](https://www.npmjs.com/package/@lazyants/hetzner-mcp-server)
 - MCP Registry: [`io.github.lazyants/hetzner`](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.lazyants/hetzner)
 
+## [2.3.0] — 2026-06-20
+
+### Added
+
+- **Storage Boxes domain (29 new tools, 156 → 185)** on a new
+  `hetzner-mcp-storage-boxes` entry point: Storage Box CRUD, folders, actions,
+  protection/type/password/access-settings actions, snapshot plan
+  enable/disable + rollback; snapshots CRUD; subaccounts CRUD plus
+  home-directory/password/access-settings actions; and Storage Box types.
+  Storage Boxes call the separate `https://api.hetzner.com/v1` host via a second
+  cached client that reuses the same retry, 429 backoff, and error
+  normalization. The client resolves its token as `HETZNER_STORAGE_API_TOKEN ??
+  HETZNER_API_TOKEN`, so a single existing token keeps working; a dedicated
+  Storage Box token is supported if you scope one.
+- `pathSeg` (URL path-segment encoder) was promoted from `tools/zones.ts` to the
+  shared `schemas/common.ts` and is now unit-tested.
+
+### Deprecated
+
+- `hetzner_list_datacenters` / `hetzner_get_datacenter` now flag Hetzner's
+  deprecation of `/datacenters` (removed after 2026-10-01, HTTP 410) and point
+  to `hetzner_list_server_types` (`locations[].available/recommended`) and
+  `hetzner_list_locations`. The tools still work until the cutover and are not
+  yet removed.
+
 ## [2.2.1] — 2026-06-20
 
 ### Security
@@ -188,6 +213,7 @@ Total registered tools grew from 104 to 147 (+43): +22 DNS Zones
 - Rate-limit handling with exponential backoff (max 3 retries on 429).
 - GitHub Actions test and MCP Registry publish workflows.
 
+[2.3.0]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v2.3.0
 [2.2.1]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v2.2.1
 [2.2.0]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v2.2.0
 [2.1.1]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v2.1.1

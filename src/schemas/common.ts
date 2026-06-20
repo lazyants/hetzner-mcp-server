@@ -1,5 +1,12 @@
 import { z } from 'zod';
 
+// Encode arbitrary user-controlled path segments. Numeric IDs and DNS-safe
+// names already round-trip unchanged; this protects against names that
+// happen to contain reserved URI characters (e.g. "?", "#", "%", "/").
+export function pathSeg(v: number | string): string {
+  return encodeURIComponent(String(v));
+}
+
 export const IdSchema = z.number().int().positive().describe('Resource ID');
 
 // Some Hetzner Cloud resources (e.g. DNS Zones) accept either the numeric ID

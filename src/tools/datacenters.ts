@@ -4,13 +4,20 @@ import { hetznerRequest } from '../services/hetzner.js';
 import { handleToolRequest } from '../helpers.js';
 import { IdSchema, PaginationParams } from '../schemas/common.js';
 
+// Hetzner deprecated GET /datacenters and GET /datacenters/{id} on 2026-06-02;
+// they return HTTP 410 Gone after 2026-10-01. There is no drop-in replacement —
+// the availability data moved to hetzner_list_server_types
+// (locations[].available/recommended) and hetzner_list_locations. Remove these
+// two tools in a follow-up release once the endpoints start returning 410.
+const DATACENTERS_REMOVAL_DATE = '2026-10-01';
+
 export function registerDatacenterTools(server: McpServer): void {
   // List datacenters
   server.registerTool(
     'hetzner_list_datacenters',
     {
       title: 'List Datacenters',
-      description: 'List all available datacenters and their supported server types.',
+      description: `Deprecated by Hetzner; /datacenters is removed after ${DATACENTERS_REMOVAL_DATE} (HTTP 410). Use hetzner_list_server_types (locations[].available/recommended) and hetzner_list_locations instead.`,
       inputSchema: z.object({
         name: z.string().optional().describe('Filter by datacenter name'),
         ...PaginationParams,
@@ -25,7 +32,7 @@ export function registerDatacenterTools(server: McpServer): void {
     'hetzner_get_datacenter',
     {
       title: 'Get Datacenter',
-      description: 'Get details of a specific datacenter by ID.',
+      description: `Deprecated by Hetzner; /datacenters is removed after ${DATACENTERS_REMOVAL_DATE} (HTTP 410). Use hetzner_list_server_types (locations[].available/recommended) and hetzner_list_locations instead.`,
       inputSchema: z.object({
         id: IdSchema.describe('Datacenter ID'),
       }),

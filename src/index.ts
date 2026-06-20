@@ -15,6 +15,7 @@ import { registerPrimaryIpTools } from './tools/primary-ips.js';
 import { registerSshKeyTools } from './tools/ssh-keys.js';
 import { registerDnsZoneTools } from './tools/zones.js';
 import { registerPricingTools } from './tools/pricing.js';
+import { registerStorageBoxTools } from './tools/storage-boxes.js';
 import { registerReferenceResource } from './resources/hetzner-reference.js';
 
 const server = createServer('hetzner-mcp-server');
@@ -38,6 +39,9 @@ registerVolumeTools(server);
 registerFloatingIpTools(server);
 registerPrimaryIpTools(server);
 registerSshKeyTools(server);
+
+// Storage Boxes (api.hetzner.com)
+registerStorageBoxTools(server);
 
 // DNS
 registerDnsZoneTools(server);

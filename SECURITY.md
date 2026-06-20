@@ -61,7 +61,10 @@ We aim to acknowledge reports within 3 business days.
   package (e.g. `vitest`, its sub-deps). We track them via Dependabot but
   do not treat them as security incidents.
 - Misconfiguration of the consumer's own environment (leaked
-  `HETZNER_API_TOKEN`, over-privileged API tokens, etc.).
+  `HETZNER_API_TOKEN` or `HETZNER_STORAGE_API_TOKEN`, over-privileged API
+  tokens, etc.). The Storage Box tools call `https://api.hetzner.com/v1` using
+  `HETZNER_STORAGE_API_TOKEN` when set, otherwise falling back to
+  `HETZNER_API_TOKEN`.
 
 ## Responsible disclosure
 
