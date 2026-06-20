@@ -18,8 +18,10 @@ function getToken(): string {
 
 // Storage Boxes accept a dedicated token but fall back to the Cloud token, since
 // Hetzner presents both hosts as one API-token family. Throw only if BOTH absent.
+// Use `||` (not `??`) so an empty-string HETZNER_STORAGE_API_TOKEN (e.g. an unset
+// `${VAR}` placeholder in a compose/.env file) still falls back to the Cloud token.
 function getStorageToken(): string {
-  const token = process.env.HETZNER_STORAGE_API_TOKEN ?? process.env.HETZNER_API_TOKEN;
+  const token = process.env.HETZNER_STORAGE_API_TOKEN || process.env.HETZNER_API_TOKEN;
   if (!token) {
     throw new Error(
       'HETZNER_STORAGE_API_TOKEN (or HETZNER_API_TOKEN) environment variable is required ' +

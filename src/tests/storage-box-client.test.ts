@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 /**
  * Verifies the Storage Box client wiring in services/hetzner.ts:
- *   - token resolution order (HETZNER_STORAGE_API_TOKEN ?? HETZNER_API_TOKEN),
+ *   - token resolution order (HETZNER_STORAGE_API_TOKEN || HETZNER_API_TOKEN),
+ *     where an empty-string storage token still falls back to the Cloud token,
  *     throwing only when BOTH are absent;
  *   - the storage client targets api.hetzner.com while the Cloud client targets
  *     api.hetzner.cloud (the two hosts must not be conflated);
@@ -64,6 +65,17 @@ describe('storageBoxRequest — token resolution and base URL', () => {
   });
 
   it('falls back to HETZNER_API_TOKEN when the storage token is absent', async () => {
+    vi.stubEnv('HETZNER_API_TOKEN', 'cloud-tok');
+    const { storageBoxRequest } = await loadFreshService();
+
+    await storageBoxRequest('GET', '/storage_boxes');
+
+    expect(createCalls[0].baseURL).toBe('https://api.hetzner.com/v1');
+    expect(createCalls[0].authorization).toBe('Bearer cloud-tok');
+  });
+
+  it('treats an empty-string storage token as absent and falls back to the Cloud token', async () => {
+    vi.stubEnv('HETZNER_STORAGE_API_TOKEN', '');
     vi.stubEnv('HETZNER_API_TOKEN', 'cloud-tok');
     const { storageBoxRequest } = await loadFreshService();
 
