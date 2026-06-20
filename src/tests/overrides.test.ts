@@ -51,8 +51,12 @@ describe('qs/hono security overrides', () => {
     expect(pkg.overrides?.qs).toBe('^6.15.2');
   });
 
-  it('declares the hono override pinned to ^4.12.21 in package.json', () => {
-    expect(pkg.overrides?.hono).toBe('^4.12.21');
+  it('declares the hono override pinned to ^4.12.25 in package.json', () => {
+    expect(pkg.overrides?.hono).toBe('^4.12.25');
+  });
+
+  it('declares the form-data override pinned to ^4.0.6 in package.json', () => {
+    expect(pkg.overrides?.['form-data']).toBe('^4.0.6');
   });
 
   it('resolves every qs in package-lock.json to >= 6.15.2', () => {
@@ -63,11 +67,19 @@ describe('qs/hono security overrides', () => {
     }
   });
 
-  it('resolves every hono in package-lock.json to >= 4.12.21', () => {
+  it('resolves every hono in package-lock.json to >= 4.12.25', () => {
     const versions = resolvedVersions('hono');
     expect(versions.length).toBeGreaterThan(0);
     for (const v of versions) {
-      expect(gte(v, '4.12.21'), `hono ${v} is below 4.12.21`).toBe(true);
+      expect(gte(v, '4.12.25'), `hono ${v} is below 4.12.25`).toBe(true);
+    }
+  });
+
+  it('resolves every form-data in package-lock.json to >= 4.0.6', () => {
+    const versions = resolvedVersions('form-data');
+    expect(versions.length).toBeGreaterThan(0);
+    for (const v of versions) {
+      expect(gte(v, '4.0.6'), `form-data ${v} is below 4.0.6`).toBe(true);
     }
   });
 });
@@ -86,8 +98,8 @@ describe('gte() version comparator', () => {
     ['6.16.0-beta', '6.15.2', true], // prerelease of a higher core still wins
     ['6.15.2+build', '6.15.2', true], // build metadata has no precedence
     ['6.15.2+build-1', '6.15.2', true], // hyphen in build metadata is not a prerelease
-    ['4.12.18', '4.12.21', false], // the exact hono pre-fix vulnerable version
-    ['4.13.0', '4.12.21', true],
+    ['4.12.24', '4.12.25', false], // the exact hono pre-fix vulnerable version
+    ['4.13.0', '4.12.25', true],
   ])('gte(%s, %s) === %s', (version, min, expected) => {
     expect(gte(version, min)).toBe(expected);
   });
