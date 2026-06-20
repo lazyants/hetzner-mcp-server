@@ -137,3 +137,38 @@ describe('Datacenters / Locations / Server Types tools — path, method, and par
     });
   });
 });
+
+/**
+ * Hetzner deprecated /datacenters on 2026-06-02; the endpoints return HTTP 410
+ * after 2026-10-01. We deprecate the two tools in place (still functional until
+ * then) and surface the removal date + replacement guidance in their
+ * descriptions. This test makes the follow-up removal discoverable and locks the
+ * deprecation notice so it cannot be silently dropped before the cutover.
+ */
+interface ToolWithMeta {
+  description?: string;
+}
+
+function toolMeta(server: McpServer, name: string): ToolWithMeta {
+  const registry = (server as unknown as { _registeredTools: Record<string, ToolWithMeta> })._registeredTools;
+  const entry = registry[name];
+  if (!entry) throw new Error(`Tool not registered: ${name}`);
+  return entry;
+}
+
+describe('Datacenters deprecation notice (removed after 2026-10-01)', () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  it('list/get datacenter descriptions flag deprecation, the 2026-10-01 removal, and the replacements', async () => {
+    const server = await setupServer();
+    for (const name of ['hetzner_list_datacenters', 'hetzner_get_datacenter']) {
+      const desc = toolMeta(server, name).description ?? '';
+      expect(desc, name).toMatch(/deprecated/i);
+      expect(desc, name).toContain('2026-10-01');
+      expect(desc, name).toContain('hetzner_list_server_types');
+      expect(desc, name).toContain('hetzner_list_locations');
+    }
+  });
+});

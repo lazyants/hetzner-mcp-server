@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosError, Method } from 'axios';
-import { HETZNER_API_BASE, MAX_RETRIES, REQUEST_TIMEOUT } from '../constants.js';
+import { HETZNER_API_BASE, HETZNER_STORAGE_API_BASE, MAX_RETRIES, REQUEST_TIMEOUT } from '../constants.js';
 
 interface HetznerErrorBody {
   error: { code: string; message: string };
@@ -16,12 +16,26 @@ function getToken(): string {
   return token;
 }
 
-function createClient(): AxiosInstance {
+// Storage Boxes accept a dedicated token but fall back to the Cloud token, since
+// Hetzner presents both hosts as one API-token family. Throw only if BOTH absent.
+function getStorageToken(): string {
+  const token = process.env.HETZNER_STORAGE_API_TOKEN ?? process.env.HETZNER_API_TOKEN;
+  if (!token) {
+    throw new Error(
+      'HETZNER_STORAGE_API_TOKEN (or HETZNER_API_TOKEN) environment variable is required ' +
+      'for Storage Box tools. Get your token from ' +
+      'https://console.hetzner.cloud/projects/*/security/tokens'
+    );
+  }
+  return token;
+}
+
+function createClient(baseURL: string, token: string): AxiosInstance {
   const client = axios.create({
-    baseURL: HETZNER_API_BASE,
+    baseURL,
     timeout: REQUEST_TIMEOUT,
     headers: {
-      Authorization: `Bearer ${getToken()}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
     // Hetzner expects repeated keys for array query params (e.g.
@@ -78,9 +92,18 @@ let clientInstance: AxiosInstance | null = null;
 
 function getClient(): AxiosInstance {
   if (!clientInstance) {
-    clientInstance = createClient();
+    clientInstance = createClient(HETZNER_API_BASE, getToken());
   }
   return clientInstance;
+}
+
+let storageClientInstance: AxiosInstance | null = null;
+
+function getStorageClient(): AxiosInstance {
+  if (!storageClientInstance) {
+    storageClientInstance = createClient(HETZNER_STORAGE_API_BASE, getStorageToken());
+  }
+  return storageClientInstance;
 }
 
 function stripUndefined(obj: Record<string, unknown>): Record<string, unknown> {
@@ -93,14 +116,14 @@ function stripUndefined(obj: Record<string, unknown>): Record<string, unknown> {
   return result;
 }
 
-export async function hetznerRequest<T = unknown>(
+async function request<T>(
+  client: AxiosInstance,
   method: Method,
   path: string,
   data?: unknown,
   params?: Record<string, unknown>
 ): Promise<T> {
   try {
-    const client = getClient();
     const response = await client.request<T>({
       method,
       url: path,
@@ -121,4 +144,24 @@ export async function hetznerRequest<T = unknown>(
     }
     throw err;
   }
+}
+
+export async function hetznerRequest<T = unknown>(
+  method: Method,
+  path: string,
+  data?: unknown,
+  params?: Record<string, unknown>
+): Promise<T> {
+  return request<T>(getClient(), method, path, data, params);
+}
+
+// Same retry / 429 backoff / error normalization as hetznerRequest, but routed
+// to the Storage Box host (api.hetzner.com) with its own token resolution.
+export async function storageBoxRequest<T = unknown>(
+  method: Method,
+  path: string,
+  data?: unknown,
+  params?: Record<string, unknown>
+): Promise<T> {
+  return request<T>(getStorageClient(), method, path, data, params);
 }

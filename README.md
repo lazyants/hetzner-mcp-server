@@ -4,7 +4,7 @@
 
 MCP server for the [Hetzner Cloud API](https://docs.hetzner.cloud/). Manage servers, networks, volumes, firewalls, load balancers, and more through the Model Context Protocol.
 
-**156 tools** across 14 resource domains, with 8 entry points so you can pick the right server for your MCP client's tool limit. A read-only API-reference Resource (`reference://hetzner/api`) is also exposed on every entry point.
+**185 tools** across 15 resource domains, with 9 entry points so you can pick the right server for your MCP client's tool limit. A read-only API-reference Resource (`reference://hetzner/api`) is also exposed on every entry point.
 
 ## Installation
 
@@ -28,16 +28,23 @@ export HETZNER_API_TOKEN=your-token-here
 
 Get a token from the [Hetzner Cloud Console](https://console.hetzner.cloud/) under Security > API Tokens.
 
+The Storage Box tools call a separate host (`https://api.hetzner.com/v1`). They use `HETZNER_STORAGE_API_TOKEN` if set, otherwise fall back to `HETZNER_API_TOKEN`, so a single token keeps working. Set `HETZNER_STORAGE_API_TOKEN` only if you scope Storage Box access to a dedicated token:
+
+```bash
+export HETZNER_STORAGE_API_TOKEN=your-storage-token-here  # optional
+```
+
 ## Entry Points
 
 | Command | Domains | Tools |
 |---|---|---|
-| `hetzner-mcp-server` | All 14 domains | 156 |
+| `hetzner-mcp-server` | All 15 domains | 185 |
 | `hetzner-mcp-servers` | Servers, Datacenters/Locations/Server Types, Pricing | 34 |
 | `hetzner-mcp-networking` | Networks, Firewalls | 21 |
 | `hetzner-mcp-load-balancers` | Load Balancers, Certificates | 28 |
 | `hetzner-mcp-ips` | Floating IPs, Primary IPs | 20 |
 | `hetzner-mcp-storage` | Volumes, Images | 17 |
+| `hetzner-mcp-storage-boxes` | Storage Boxes (+ snapshots, subaccounts, types) | 29 |
 | `hetzner-mcp-config` | SSH Keys, ISOs, Placement Groups | 14 |
 | `hetzner-mcp-dns` | DNS Zones | 22 |
 
@@ -120,6 +127,8 @@ Add to `claude_desktop_config.json`:
 
 `hetzner_list_datacenters`, `hetzner_get_datacenter`, `hetzner_list_locations`, `hetzner_get_location`, `hetzner_list_server_types`, `hetzner_get_server_type`, `hetzner_get_pricing`
 
+> `hetzner_list_datacenters` / `hetzner_get_datacenter` are deprecated by Hetzner and removed after 2026-10-01 (HTTP 410). Use `hetzner_list_server_types` (`locations[].available/recommended`) and `hetzner_list_locations` instead.
+
 ### Networks (12 tools) — networking
 
 `hetzner_list_networks`, `hetzner_get_network`, `hetzner_create_network`, `hetzner_update_network`, `hetzner_delete_network`, `hetzner_add_subnet`, `hetzner_delete_subnet`, `hetzner_add_route`, `hetzner_delete_route`, `hetzner_change_network_protection`, `hetzner_change_ip_range`, `hetzner_list_network_actions`
@@ -155,6 +164,12 @@ Add to `claude_desktop_config.json`:
 ### DNS Zones (22 tools) — dns
 
 `hetzner_list_zones`, `hetzner_get_zone`, `hetzner_create_zone`, `hetzner_update_zone`, `hetzner_delete_zone`, `hetzner_change_zone_protection`, `hetzner_change_zone_ttl`, `hetzner_change_zone_primary_nameservers`, `hetzner_export_zonefile`, `hetzner_import_zonefile`, `hetzner_list_zone_actions`, `hetzner_list_zone_rrsets`, `hetzner_get_zone_rrset`, `hetzner_create_zone_rrset`, `hetzner_update_zone_rrset`, `hetzner_delete_zone_rrset`, `hetzner_change_zone_rrset_protection`, `hetzner_change_zone_rrset_ttl`, `hetzner_add_zone_rrset_records`, `hetzner_remove_zone_rrset_records`, `hetzner_set_zone_rrset_records`, `hetzner_update_zone_rrset_records`
+
+### Storage Boxes (29 tools) — storage-boxes
+
+Storage Boxes use the `https://api.hetzner.com/v1` host. Token: `HETZNER_STORAGE_API_TOKEN` (falls back to `HETZNER_API_TOKEN`).
+
+`hetzner_list_storage_boxes`, `hetzner_create_storage_box`, `hetzner_get_storage_box`, `hetzner_update_storage_box`, `hetzner_delete_storage_box`, `hetzner_list_storage_box_folders`, `hetzner_list_storage_box_actions`, `hetzner_change_storage_box_protection`, `hetzner_change_storage_box_type`, `hetzner_reset_storage_box_password`, `hetzner_update_storage_box_access_settings`, `hetzner_rollback_storage_box_snapshot`, `hetzner_enable_storage_box_snapshot_plan`, `hetzner_disable_storage_box_snapshot_plan`, `hetzner_list_storage_box_types`, `hetzner_get_storage_box_type`, `hetzner_list_storage_box_snapshots`, `hetzner_create_storage_box_snapshot`, `hetzner_get_storage_box_snapshot`, `hetzner_update_storage_box_snapshot`, `hetzner_delete_storage_box_snapshot`, `hetzner_list_storage_box_subaccounts`, `hetzner_create_storage_box_subaccount`, `hetzner_get_storage_box_subaccount`, `hetzner_update_storage_box_subaccount`, `hetzner_delete_storage_box_subaccount`, `hetzner_change_storage_box_subaccount_home_directory`, `hetzner_reset_storage_box_subaccount_password`, `hetzner_update_storage_box_subaccount_access_settings`
 
 ## Security
 

@@ -10,17 +10,11 @@ import {
   NameFilterParam,
   SortParam,
   ActionStatusFilterParam,
+  pathSeg,
 } from '../schemas/common.js';
 import { ZONE_RRSET_TYPES } from '../types/zones.js';
 
 const RRSetTypeSchema = z.enum(ZONE_RRSET_TYPES).describe('DNS record type (A, AAAA, CNAME, MX, NS, TXT, etc.)');
-
-// Encode arbitrary user-controlled path segments. Numeric IDs and DNS-safe
-// names already round-trip unchanged; this protects against names that
-// happen to contain reserved URI characters (e.g. "?", "#", "%", "/").
-function pathSeg(v: number | string): string {
-  return encodeURIComponent(String(v));
-}
 
 const PrimaryNameserverSchema = z.object({
   address: z.string().describe('IPv4 or IPv6 address of the primary nameserver, optionally with :port'),
