@@ -118,6 +118,74 @@ function stripUndefined(obj: Record<string, unknown>): Record<string, unknown> {
   return result;
 }
 
+// Headers that must never survive on an AxiosError we chain as `{ cause: err }`.
+const SENSITIVE_HEADERS = new Set(['authorization', 'proxy-authorization', 'cookie']);
+
+// Remove auth-bearing headers case-insensitively from an AxiosHeaders instance
+// (which exposes .delete) OR a plain object. A fixed-case `delete h.Authorization`
+// would miss a plain key like `AUTHORIZATION`, so iterate the actual keys.
+function scrubAuth(headers: unknown): void {
+  if (!headers || typeof headers !== 'object') return;
+  const h = headers as Record<string, unknown> & { delete?: unknown };
+  // Optional chaining only guards null/undefined; a plain object whose own key is
+  // literally "delete" would make `h.delete(key)` throw — so type-guard it.
+  const del = typeof h.delete === 'function' ? (h.delete as (k: string) => void) : null;
+  for (const key of Object.keys(h)) {
+    if (SENSITIVE_HEADERS.has(key.toLowerCase())) {
+      del?.call(h, key); // AxiosHeaders removes its normalized entry
+      delete h[key]; // plain-object / belt-and-suspenders
+    }
+  }
+}
+
+// Scrub every credential-bearing field on a request/response config: headers plus
+// basic-auth `auth` and `proxy.auth`. Hetzner sets none of the latter today, but a
+// central sanitizer should not depend on that.
+function scrubConfig(config: unknown): void {
+  if (!config || typeof config !== 'object') return;
+  const c = config as { headers?: unknown; auth?: unknown; proxy?: { auth?: unknown } | null };
+  scrubAuth(c.headers);
+  delete c.auth;
+  if (c.proxy && typeof c.proxy === 'object') delete c.proxy.auth;
+}
+
+// Void mutator: strip the bearer token (HETZNER_API_TOKEN / HETZNER_STORAGE_API_TOKEN)
+// from an AxiosError before it is chained via `{ cause: err }`, so a logger walking the
+// cause with `util.inspect(err, { depth: null })` or `AxiosError.toJSON()` cannot surface
+// it. `config.headers` AND Node's `request._header` raw block both carry the token.
+// Mutating up front (rather than building a fresh cause) keeps the literal caught binding
+// available for `{ cause: err }`, satisfying eslint preserve-caught-error.
+function sanitizeAxiosError(err: AxiosError): void {
+  scrubConfig(err.config);
+  scrubConfig(err.response?.config); // may be a distinct ref depending on the adapter
+  delete (err as { request?: unknown }).request;
+  if (err.response) delete (err.response as { request?: unknown }).request;
+  // Defensive: an AxiosError that already chained an object cause could carry its
+  // own config/request — drop it before we re-chain err.
+  const e = err as { cause?: unknown };
+  if (e.cause && typeof e.cause === 'object') delete e.cause;
+}
+
+// Single sanitized throw path for the axios chokepoint. Mirrors the historical
+// request() branches exactly so thrown messages don't drift: a response → formatted
+// API error; a network code → "Network error"; anything else → the (now sanitized)
+// raw error returned as before. Exported for the regression test.
+export function wrapHetznerError(err: unknown): unknown {
+  if (!(err instanceof AxiosError)) return err;
+  sanitizeAxiosError(err);
+  if (err.response) {
+    const body = err.response.data as HetznerErrorBody | undefined;
+    if (body?.error) {
+      return new Error(`Hetzner API [${body.error.code}]: ${body.error.message}`, { cause: err });
+    }
+    return new Error(`Hetzner API error: ${err.response.status} ${err.response.statusText}`, { cause: err });
+  }
+  if (err.code) {
+    return new Error(`Network error: ${err.message}`, { cause: err });
+  }
+  return err;
+}
+
 async function request<T>(
   client: AxiosInstance,
   method: Method,
@@ -134,17 +202,7 @@ async function request<T>(
     });
     return response.data;
   } catch (err) {
-    if (err instanceof AxiosError && err.response) {
-      const body = err.response.data as HetznerErrorBody | undefined;
-      if (body?.error) {
-        throw new Error(`Hetzner API [${body.error.code}]: ${body.error.message}`, { cause: err });
-      }
-      throw new Error(`Hetzner API error: ${err.response.status} ${err.response.statusText}`, { cause: err });
-    }
-    if (err instanceof AxiosError && err.code) {
-      throw new Error(`Network error: ${err.message}`, { cause: err });
-    }
-    throw err;
+    throw wrapHetznerError(err);
   }
 }
 
