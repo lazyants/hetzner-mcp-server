@@ -8,6 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - npm package: [`@lazyants/hetzner-mcp-server`](https://www.npmjs.com/package/@lazyants/hetzner-mcp-server)
 - MCP Registry: [`io.github.lazyants/hetzner`](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.lazyants/hetzner)
 
+## [2.3.1] — 2026-06-22
+
+### Security
+
+- Redact the bearer token (`HETZNER_API_TOKEN` / `HETZNER_STORAGE_API_TOKEN`) from
+  rethrown axios error cause chains (defense-in-depth, #44). API errors are wrapped
+  as `new Error(msg, { cause: err })`; the chained `AxiosError` previously retained
+  the token in `config.headers.Authorization` and Node's raw `request._header` block,
+  so a logger walking the cause via `util.inspect(err, { depth: null })` or
+  `AxiosError.toJSON()` could surface it. A central `wrapHetznerError` now sanitizes
+  the error in place — scrubbing `Authorization`/`proxy-authorization`/`cookie`
+  headers (case-insensitively) on both `config` refs, and dropping `config.auth`/
+  `proxy.auth`, the `request`/`response.request` objects, and any object `cause`. The
+  single `request()` chokepoint routes both the Cloud (`api.hetzner.cloud`) and
+  Storage Box (`api.hetzner.com`) call paths through it, so both token families are
+  covered. Thrown messages are unchanged. Locked with a regression test asserting no
+  token survives `util.inspect(depth:null)` or `toJSON()`, through both
+  `hetznerRequest` and `storageBoxRequest`.
+
 ## [2.3.0] — 2026-06-20
 
 ### Added
