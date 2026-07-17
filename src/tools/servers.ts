@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { hetznerRequest } from '../services/hetzner.js';
 import { handleToolRequest } from '../helpers.js';
-import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema } from '../schemas/common.js';
+import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema, SortParam, ActionStatusFilterParam } from '../schemas/common.js';
 
 export function registerServerTools(server: McpServer): void {
   // List servers
@@ -49,6 +49,7 @@ export function registerServerTools(server: McpServer): void {
         location: z.string().optional().describe('Location name (e.g. "fsn1", "nbg1", "hel1")'),
         ssh_keys: z.array(z.union([z.string(), z.number()])).optional().describe('SSH key names or IDs to inject'),
         networks: z.array(z.number()).optional().describe('Network IDs to attach the server to'),
+        volumes: z.array(z.number().int()).optional().describe('Volume IDs to attach at creation'),
         firewalls: z.array(z.object({
           firewall: z.number().describe('Firewall ID'),
         })).optional().describe('Firewalls to apply to the server'),
@@ -61,7 +62,7 @@ export function registerServerTools(server: McpServer): void {
           ipv4: z.number().optional().describe('Primary IP ID for IPv4'),
           ipv6: z.number().optional().describe('Primary IP ID for IPv6'),
         }).optional().describe('Public network configuration'),
-        automount: z.boolean().optional().describe('Auto-mount volumes after attach'),
+        automount: z.boolean().optional().describe('Auto-mount the volumes passed in "volumes" after attach'),
         start_after_create: z.boolean().optional().describe('Start server after creation (default: true)'),
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
@@ -271,6 +272,8 @@ export function registerServerTools(server: McpServer): void {
       description: 'List all actions for a specific server, such as power changes and rebuilds.',
       inputSchema: z.object({
         id: IdSchema.describe('Server ID'),
+        ...SortParam,
+        ...ActionStatusFilterParam,
         ...PaginationParams,
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },

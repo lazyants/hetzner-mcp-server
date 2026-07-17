@@ -171,6 +171,22 @@ describe('list_<resource>_actions tools — path, method, and query shape', () =
     });
   });
 
+  it('hetzner_list_server_actions: GET /servers/{id}/actions with sort + status + pagination', async () => {
+    const { McpServerCls } = await loadFreshServer();
+    const { registerServerTools } = await import('../../tools/servers.js');
+    const server = new McpServerCls({ name: 't', version: '0.0.0' });
+    registerServerTools(server);
+
+    await callTool(server, 'hetzner_list_server_actions', { id: 3, sort: 'id:asc', status: 'running', page: 1, per_page: 25 });
+
+    expect(mockRequest).toHaveBeenCalledWith({
+      method: 'GET',
+      url: '/servers/3/actions',
+      data: undefined,
+      params: { sort: 'id:asc', status: 'running', page: 1, per_page: 25 },
+    });
+  });
+
   it('hetzner_list_image_actions: GET /images/{id}/actions with status + pagination', async () => {
     const { McpServerCls } = await loadFreshServer();
     const { registerImageTools } = await import('../../tools/images.js');
