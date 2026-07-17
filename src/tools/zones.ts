@@ -10,11 +10,20 @@ import {
   NameFilterParam,
   SortParam,
   ActionStatusFilterParam,
+  PathSegmentSchema,
   pathSeg,
 } from '../schemas/common.js';
-import { ZONE_RRSET_TYPES } from '../types/zones.js';
+
+// Zone record types supported by Hetzner DNS (see hcloud-go/zone_rrset.go).
+const ZONE_RRSET_TYPES = ['A', 'AAAA', 'CAA', 'CNAME', 'DS', 'HINFO', 'HTTPS', 'MX', 'NS', 'PTR', 'RP', 'SOA', 'SRV', 'SVCB', 'TLSA', 'TXT'] as const;
 
 const RRSetTypeSchema = z.enum(ZONE_RRSET_TYPES).describe('DNS record type (A, AAAA, CNAME, MX, NS, TXT, etc.)');
+
+// Builds the path for a single RRSet (and, with a verb appended, its action
+// endpoints) from the zone id/name, RRSet name, and record type. Centralizing
+// this keeps the two pathSeg() encodings from being forgotten on a future copy.
+const rrsetPath = (zone: string | number, name: string, type: string): string =>
+  `/zones/${pathSeg(zone)}/rrsets/${pathSeg(name)}/${type}`;
 
 const PrimaryNameserverSchema = z.object({
   address: z.string().describe('IPv4 or IPv6 address of the primary nameserver, optionally with :port'),
@@ -259,15 +268,12 @@ export function registerDnsZoneTools(server: McpServer): void {
       description: 'Get a specific RRSet by zone, name, and record type.',
       inputSchema: z.object({
         id_or_name: IdOrNameSchema.describe('Zone ID or name'),
-        name: z.string().describe('RRSet name (e.g. "@", "www", "_acme-challenge")'),
+        name: PathSegmentSchema.describe('RRSet name (e.g. "@", "www", "_acme-challenge")'),
         type: RRSetTypeSchema,
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
-    handleToolRequest(async (params) => {
-      const rrsetName = pathSeg(params.name);
-      return hetznerRequest('GET', `/zones/${pathSeg(params.id_or_name)}/rrsets/${rrsetName}/${params.type}`);
-    })
+    handleToolRequest(async (params) => hetznerRequest('GET', rrsetPath(params.id_or_name, params.name, params.type)))
   );
 
   // Create RRSet
@@ -300,7 +306,7 @@ export function registerDnsZoneTools(server: McpServer): void {
       description: 'Update an RRSet\'s labels. Records and TTL are managed via dedicated action tools.',
       inputSchema: z.object({
         id_or_name: IdOrNameSchema.describe('Zone ID or name'),
-        name: z.string().describe('RRSet name'),
+        name: PathSegmentSchema.describe('RRSet name'),
         type: RRSetTypeSchema,
         labels: LabelsSchema,
       }),
@@ -308,8 +314,7 @@ export function registerDnsZoneTools(server: McpServer): void {
     },
     handleToolRequest(async (params) => {
       const { id_or_name, name, type, ...body } = params;
-      const rrsetName = pathSeg(name);
-      return hetznerRequest('PUT', `/zones/${pathSeg(id_or_name)}/rrsets/${rrsetName}/${type}`, body);
+      return hetznerRequest('PUT', rrsetPath(id_or_name, name, type), body);
     })
   );
 
@@ -321,15 +326,12 @@ export function registerDnsZoneTools(server: McpServer): void {
       description: 'Delete an RRSet from a DNS zone permanently. The RRSet must not be change-protected.',
       inputSchema: z.object({
         id_or_name: IdOrNameSchema.describe('Zone ID or name'),
-        name: z.string().describe('RRSet name'),
+        name: PathSegmentSchema.describe('RRSet name'),
         type: RRSetTypeSchema,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
     },
-    handleToolRequest(async (params) => {
-      const rrsetName = pathSeg(params.name);
-      return hetznerRequest('DELETE', `/zones/${pathSeg(params.id_or_name)}/rrsets/${rrsetName}/${params.type}`);
-    })
+    handleToolRequest(async (params) => hetznerRequest('DELETE', rrsetPath(params.id_or_name, params.name, params.type)))
   );
 
   // Change RRSet protection
@@ -340,7 +342,7 @@ export function registerDnsZoneTools(server: McpServer): void {
       description: 'Enable or disable change protection on an RRSet to guard against accidental modification or deletion.',
       inputSchema: z.object({
         id_or_name: IdOrNameSchema.describe('Zone ID or name'),
-        name: z.string().describe('RRSet name'),
+        name: PathSegmentSchema.describe('RRSet name'),
         type: RRSetTypeSchema,
         change: z.boolean().optional().describe('If true, prevents the RRSet from being modified or deleted'),
       }),
@@ -348,8 +350,7 @@ export function registerDnsZoneTools(server: McpServer): void {
     },
     handleToolRequest(async (params) => {
       const { id_or_name, name, type, ...body } = params;
-      const rrsetName = pathSeg(name);
-      return hetznerRequest('POST', `/zones/${pathSeg(id_or_name)}/rrsets/${rrsetName}/${type}/actions/change_protection`, body);
+      return hetznerRequest('POST', `${rrsetPath(id_or_name, name, type)}/actions/change_protection`, body);
     })
   );
 
@@ -361,7 +362,7 @@ export function registerDnsZoneTools(server: McpServer): void {
       description: 'Change the TTL of an RRSet. Pass ttl=null to fall back to the zone default TTL.',
       inputSchema: z.object({
         id_or_name: IdOrNameSchema.describe('Zone ID or name'),
-        name: z.string().describe('RRSet name'),
+        name: PathSegmentSchema.describe('RRSet name'),
         type: RRSetTypeSchema,
         ttl: z.number().int().min(0).nullable().describe('New TTL in seconds, or null to fall back to the zone default'),
       }),
@@ -369,8 +370,7 @@ export function registerDnsZoneTools(server: McpServer): void {
     },
     handleToolRequest(async (params) => {
       const { id_or_name, name, type, ...body } = params;
-      const rrsetName = pathSeg(name);
-      return hetznerRequest('POST', `/zones/${pathSeg(id_or_name)}/rrsets/${rrsetName}/${type}/actions/change_ttl`, body);
+      return hetznerRequest('POST', `${rrsetPath(id_or_name, name, type)}/actions/change_ttl`, body);
     })
   );
 
@@ -382,7 +382,7 @@ export function registerDnsZoneTools(server: McpServer): void {
       description: 'Replace the full list of records in an RRSet. Existing records not in the payload are removed.',
       inputSchema: z.object({
         id_or_name: IdOrNameSchema.describe('Zone ID or name'),
-        name: z.string().describe('RRSet name'),
+        name: PathSegmentSchema.describe('RRSet name'),
         type: RRSetTypeSchema,
         records: z.array(RRSetRecordSchema).min(1).describe('Full replacement list of records for this RRSet'),
       }),
@@ -390,8 +390,7 @@ export function registerDnsZoneTools(server: McpServer): void {
     },
     handleToolRequest(async (params) => {
       const { id_or_name, name, type, ...body } = params;
-      const rrsetName = pathSeg(name);
-      return hetznerRequest('POST', `/zones/${pathSeg(id_or_name)}/rrsets/${rrsetName}/${type}/actions/set_records`, body);
+      return hetznerRequest('POST', `${rrsetPath(id_or_name, name, type)}/actions/set_records`, body);
     })
   );
 
@@ -403,7 +402,7 @@ export function registerDnsZoneTools(server: McpServer): void {
       description: 'Add new records to an existing RRSet without removing existing ones. Optionally update the RRSet TTL.',
       inputSchema: z.object({
         id_or_name: IdOrNameSchema.describe('Zone ID or name'),
-        name: z.string().describe('RRSet name'),
+        name: PathSegmentSchema.describe('RRSet name'),
         type: RRSetTypeSchema,
         records: z.array(RRSetRecordSchema).min(1).describe('Records to add to the RRSet'),
         ttl: z.number().int().min(0).optional().describe('Optional new TTL applied alongside the addition'),
@@ -412,8 +411,7 @@ export function registerDnsZoneTools(server: McpServer): void {
     },
     handleToolRequest(async (params) => {
       const { id_or_name, name, type, ...body } = params;
-      const rrsetName = pathSeg(name);
-      return hetznerRequest('POST', `/zones/${pathSeg(id_or_name)}/rrsets/${rrsetName}/${type}/actions/add_records`, body);
+      return hetznerRequest('POST', `${rrsetPath(id_or_name, name, type)}/actions/add_records`, body);
     })
   );
 
@@ -425,7 +423,7 @@ export function registerDnsZoneTools(server: McpServer): void {
       description: 'Update the comment on existing records in an RRSet (matched by value). The comment field is always sent — use an empty string to clear.',
       inputSchema: z.object({
         id_or_name: IdOrNameSchema.describe('Zone ID or name'),
-        name: z.string().describe('RRSet name'),
+        name: PathSegmentSchema.describe('RRSet name'),
         type: RRSetTypeSchema,
         records: z.array(z.object({
           value: z.string().describe('Existing record value to match'),
@@ -436,8 +434,7 @@ export function registerDnsZoneTools(server: McpServer): void {
     },
     handleToolRequest(async (params) => {
       const { id_or_name, name, type, ...body } = params;
-      const rrsetName = pathSeg(name);
-      return hetznerRequest('POST', `/zones/${pathSeg(id_or_name)}/rrsets/${rrsetName}/${type}/actions/update_records`, body);
+      return hetznerRequest('POST', `${rrsetPath(id_or_name, name, type)}/actions/update_records`, body);
     })
   );
 
@@ -449,7 +446,7 @@ export function registerDnsZoneTools(server: McpServer): void {
       description: 'Remove specific records from an RRSet (matched by value) without deleting the RRSet itself.',
       inputSchema: z.object({
         id_or_name: IdOrNameSchema.describe('Zone ID or name'),
-        name: z.string().describe('RRSet name'),
+        name: PathSegmentSchema.describe('RRSet name'),
         type: RRSetTypeSchema,
         records: z.array(RRSetRecordSchema).min(1).describe('Records to remove (matched by value)'),
       }),
@@ -457,8 +454,7 @@ export function registerDnsZoneTools(server: McpServer): void {
     },
     handleToolRequest(async (params) => {
       const { id_or_name, name, type, ...body } = params;
-      const rrsetName = pathSeg(name);
-      return hetznerRequest('POST', `/zones/${pathSeg(id_or_name)}/rrsets/${rrsetName}/${type}/actions/remove_records`, body);
+      return hetznerRequest('POST', `${rrsetPath(id_or_name, name, type)}/actions/remove_records`, body);
     })
   );
 }
