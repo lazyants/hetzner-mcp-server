@@ -22,8 +22,9 @@ const RRSetTypeSchema = z.enum(ZONE_RRSET_TYPES).describe('DNS record type (A, A
 // Builds the path for a single RRSet (and, with a verb appended, its action
 // endpoints) from the zone id/name, RRSet name, and record type. Centralizing
 // this keeps the two pathSeg() encodings from being forgotten on a future copy.
-const rrsetPath = (zone: string | number, name: string, type: string): string =>
-  `/zones/${pathSeg(zone)}/rrsets/${pathSeg(name)}/${type}`;
+function rrsetPath(zone: string | number, name: string, type: string): string {
+  return `/zones/${pathSeg(zone)}/rrsets/${pathSeg(name)}/${type}`;
+}
 
 const PrimaryNameserverSchema = z.object({
   address: z.string().describe('IPv4 or IPv6 address of the primary nameserver, optionally with :port'),
