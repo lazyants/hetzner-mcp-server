@@ -53,7 +53,15 @@ export function registerPrimaryIpTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
-    handleToolRequest(async (params) => hetznerRequest('POST', '/primary_ips', params))
+    handleToolRequest(async (params) => {
+      // assignee_type defaults to "unassigned" starting 2026-08-01 (see describe() above), so a
+      // create-and-assign call that only sets assignee_id must pin assignee_type explicitly —
+      // otherwise it silently stops assigning after that cutover.
+      const body = params.assignee_id !== undefined && params.assignee_type === undefined
+        ? { ...params, assignee_type: 'server' as const }
+        : params;
+      return hetznerRequest('POST', '/primary_ips', body);
+    })
   );
 
   // Update primary IP

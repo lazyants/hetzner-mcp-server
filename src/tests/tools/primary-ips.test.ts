@@ -118,7 +118,7 @@ describe('Primary IPs tools — path, method, and body/params shape', () => {
     });
   });
 
-  it('hetzner_create_primary_ip: POST /primary_ips with assignee_id forwards create-and-assign body', async () => {
+  it('hetzner_create_primary_ip: POST /primary_ips with assignee_id injects assignee_type "server" when omitted', async () => {
     const server = await setupServer();
     await callTool(server, 'hetzner_create_primary_ip', {
       type: 'ipv4',
@@ -132,6 +132,28 @@ describe('Primary IPs tools — path, method, and body/params shape', () => {
         type: 'ipv4',
         name: 'web-ip',
         assignee_id: 4711,
+        assignee_type: 'server',
+      },
+      params: undefined,
+    });
+  });
+
+  it('hetzner_create_primary_ip: POST /primary_ips with assignee_id and explicit assignee_type leaves it unchanged', async () => {
+    const server = await setupServer();
+    await callTool(server, 'hetzner_create_primary_ip', {
+      type: 'ipv4',
+      name: 'web-ip',
+      assignee_id: 4711,
+      assignee_type: 'server',
+    });
+    expect(mockRequest).toHaveBeenCalledWith({
+      method: 'POST',
+      url: '/primary_ips',
+      data: {
+        type: 'ipv4',
+        name: 'web-ip',
+        assignee_id: 4711,
+        assignee_type: 'server',
       },
       params: undefined,
     });
