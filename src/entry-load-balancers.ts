@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 import { createServer, startServer } from './server.js';
-import { registerLoadBalancerTools } from './tools/load-balancers.js';
-import { registerCertificateTools } from './tools/certificates.js';
+import { SPLITS } from './splits.js';
 import { registerReferenceResource } from './resources/hetzner-reference.js';
 
-const server = createServer('hetzner-mcp-load-balancers');
+const split = SPLITS['load-balancers'];
+const server = createServer(split.bin);
 
-registerLoadBalancerTools(server);
-registerCertificateTools(server);
+for (const register of split.registrars) {
+  register(server);
+}
 registerReferenceResource(server);
 
 startServer(server).catch((err) => {

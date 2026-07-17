@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 import { createServer, startServer } from './server.js';
-import { registerFloatingIpTools } from './tools/floating-ips.js';
-import { registerPrimaryIpTools } from './tools/primary-ips.js';
+import { SPLITS } from './splits.js';
 import { registerReferenceResource } from './resources/hetzner-reference.js';
 
-const server = createServer('hetzner-mcp-ips');
+const split = SPLITS.ips;
+const server = createServer(split.bin);
 
-registerFloatingIpTools(server);
-registerPrimaryIpTools(server);
+for (const register of split.registrars) {
+  register(server);
+}
 registerReferenceResource(server);
 
 startServer(server).catch((err) => {

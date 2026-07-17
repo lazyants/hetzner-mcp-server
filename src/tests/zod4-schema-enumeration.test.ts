@@ -2,21 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 
-import { registerServerTools } from '../tools/servers.js';
-import { registerImageTools } from '../tools/images.js';
-import { registerIsoTools } from '../tools/isos.js';
-import { registerPlacementGroupTools } from '../tools/placement-groups.js';
-import { registerDatacenterTools } from '../tools/datacenters.js';
-import { registerNetworkTools } from '../tools/networks.js';
-import { registerFirewallTools } from '../tools/firewalls.js';
-import { registerLoadBalancerTools } from '../tools/load-balancers.js';
-import { registerCertificateTools } from '../tools/certificates.js';
-import { registerVolumeTools } from '../tools/volumes.js';
-import { registerFloatingIpTools } from '../tools/floating-ips.js';
-import { registerPrimaryIpTools } from '../tools/primary-ips.js';
-import { registerSshKeyTools } from '../tools/ssh-keys.js';
-import { registerDnsZoneTools } from '../tools/zones.js';
-import { registerPricingTools } from '../tools/pricing.js';
+import { ALL_REGISTRARS, TOTAL_TOOL_COUNT } from '../splits.js';
 
 /**
  * Regression guard against the Zod 4 `optin: "optional"` silent-drop bug
@@ -53,21 +39,9 @@ interface RegisteredToolEntry {
 
 function buildFullServer(): McpServer {
   const server = new McpServer({ name: 'enum-test', version: '0.0.0' });
-  registerServerTools(server);
-  registerImageTools(server);
-  registerIsoTools(server);
-  registerPlacementGroupTools(server);
-  registerDatacenterTools(server);
-  registerNetworkTools(server);
-  registerFirewallTools(server);
-  registerLoadBalancerTools(server);
-  registerCertificateTools(server);
-  registerVolumeTools(server);
-  registerFloatingIpTools(server);
-  registerPrimaryIpTools(server);
-  registerSshKeyTools(server);
-  registerDnsZoneTools(server);
-  registerPricingTools(server);
+  for (const register of ALL_REGISTRARS) {
+    register(server);
+  }
   return server;
 }
 
@@ -114,10 +88,11 @@ describe('Zod 4 schema enumeration — every registered tool', () => {
   const registry = getRegistry(server);
   const toolNames = Object.keys(registry).sort();
 
-  it('discovers at least the post-PR-21 count of tools (dynamic, currently 111)', () => {
-    // Anchor — proves the registry walk actually sees tools. Do not
-    // hardcode here; this just sanity-checks the test isn't silently iterating empty.
-    expect(toolNames.length).toBeGreaterThanOrEqual(111);
+  it('discovers every registered tool (no coverage gap between splits.ts and the full server)', () => {
+    // ALL_REGISTRARS is the single source of truth for the full tool set —
+    // this must match exactly, not just clear a loose floor, or a registrar
+    // silently dropped from splits.ts would go uncaught.
+    expect(toolNames.length).toBe(TOTAL_TOOL_COUNT);
   });
 
   it.each(toolNames)('tool %s: emitted JSON Schema input mode matches source shape', (name) => {

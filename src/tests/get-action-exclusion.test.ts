@@ -41,8 +41,8 @@ describe('get_action exclusion policy (static source scan)', () => {
   });
 
   it('(a) no GET issues a request to a global or per-action-id /actions path', () => {
-    // Capture the path template of every hetznerRequest('GET', <path>, ...) call.
-    const callRe = /hetznerRequest\(\s*['"]GET['"]\s*,\s*(`[^`]*`|'[^']*'|"[^"]*")/g;
+    // Capture the path template of every hetznerRequest/storageBoxRequest('GET', <path>, ...) call.
+    const callRe = /(?:hetznerRequest|storageBoxRequest)\(\s*['"]GET['"]\s*,\s*(`[^`]*`|'[^']*'|"[^"]*")/g;
     const violations: string[] = [];
 
     for (const { file, text } of sources) {

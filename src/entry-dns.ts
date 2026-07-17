@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 import { createServer, startServer } from './server.js';
-import { registerDnsZoneTools } from './tools/zones.js';
+import { SPLITS } from './splits.js';
 import { registerReferenceResource } from './resources/hetzner-reference.js';
 
-const server = createServer('hetzner-mcp-dns');
+const split = SPLITS.dns;
+const server = createServer(split.bin);
 
-registerDnsZoneTools(server);
+for (const register of split.registrars) {
+  register(server);
+}
 registerReferenceResource(server);
 
 startServer(server).catch((err) => {
