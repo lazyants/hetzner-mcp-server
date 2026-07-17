@@ -93,13 +93,13 @@ describe('Primary IPs tools — path, method, and body/params shape', () => {
     });
   });
 
-  it('hetzner_create_primary_ip: POST /primary_ips with datacenter body', async () => {
+  it('hetzner_create_primary_ip: POST /primary_ips with location body', async () => {
     const server = await setupServer();
     await callTool(server, 'hetzner_create_primary_ip', {
       type: 'ipv4',
       assignee_type: 'server',
       name: 'web-ip',
-      datacenter: 'fsn1-dc14',
+      location: 'fsn1',
       auto_delete: true,
       labels: { env: 'prod' },
     });
@@ -110,9 +110,28 @@ describe('Primary IPs tools — path, method, and body/params shape', () => {
         type: 'ipv4',
         assignee_type: 'server',
         name: 'web-ip',
-        datacenter: 'fsn1-dc14',
+        location: 'fsn1',
         auto_delete: true,
         labels: { env: 'prod' },
+      },
+      params: undefined,
+    });
+  });
+
+  it('hetzner_create_primary_ip: POST /primary_ips with assignee_id forwards create-and-assign body', async () => {
+    const server = await setupServer();
+    await callTool(server, 'hetzner_create_primary_ip', {
+      type: 'ipv4',
+      name: 'web-ip',
+      assignee_id: 4711,
+    });
+    expect(mockRequest).toHaveBeenCalledWith({
+      method: 'POST',
+      url: '/primary_ips',
+      data: {
+        type: 'ipv4',
+        name: 'web-ip',
+        assignee_id: 4711,
       },
       params: undefined,
     });
