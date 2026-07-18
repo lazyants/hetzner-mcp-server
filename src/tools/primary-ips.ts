@@ -41,18 +41,27 @@ export function registerPrimaryIpTools(server: McpServer): void {
     'hetzner_create_primary_ip',
     {
       title: 'Create Primary IP',
-      description: 'Create a new primary IP with the specified type and optional assignee type.',
+      description: 'Create a new primary IP with the specified type, optional location, and optional assignee type.',
       inputSchema: z.object({
         type: z.enum(['ipv4', 'ipv6']).describe('IP type'),
         assignee_type: z.literal('server').optional().describe('Assignee type. Optional since 2026-04-27; defaults to "server" until 2026-08-01, then to "unassigned".'),
         name: z.string().describe('Name of the primary IP'),
-        datacenter: z.string().optional().describe('Datacenter name (e.g. "fsn1-dc14")'),
+        location: z.string().optional().describe('Location name (e.g. "fsn1", "nbg1", "hel1")'),
+        assignee_id: z.number().int().positive().optional().describe('Server ID to assign the primary IP to (create-and-assign in one call)'),
         auto_delete: z.boolean().optional().describe('Delete the primary IP when the assignee is deleted'),
         labels: LabelsSchema,
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
-    handleToolRequest(async (params) => hetznerRequest('POST', '/primary_ips', params))
+    handleToolRequest(async (params) => {
+      // assignee_type defaults to "unassigned" starting 2026-08-01 (see describe() above), so a
+      // create-and-assign call that only sets assignee_id must pin assignee_type explicitly —
+      // otherwise it silently stops assigning after that cutover.
+      const body = params.assignee_id !== undefined && params.assignee_type === undefined
+        ? { ...params, assignee_type: 'server' as const }
+        : params;
+      return hetznerRequest('POST', '/primary_ips', body);
+    })
   );
 
   // Update primary IP
