@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { HETZNER_API_BASE, HETZNER_STORAGE_API_BASE, MAX_RETRIES, DEFAULT_PER_PAGE, MAX_PER_PAGE } from '../constants.js';
+import { HETZNER_API_BASE, HETZNER_STORAGE_API_BASE, MAX_RETRIES, MAX_PER_PAGE } from '../constants.js';
 
 describe('constants', () => {
   it('HETZNER_API_BASE points to Hetzner v1 API', () => {
@@ -12,10 +12,6 @@ describe('constants', () => {
 
   it('MAX_RETRIES is 3', () => {
     expect(MAX_RETRIES).toBe(3);
-  });
-
-  it('DEFAULT_PER_PAGE is 25', () => {
-    expect(DEFAULT_PER_PAGE).toBe(25);
   });
 
   it('MAX_PER_PAGE is 50', () => {
