@@ -8,7 +8,8 @@ import { wrapHetznerError } from '../services/hetzner.js';
 const TOKEN = 'sk-leaky-bearer-DO-NOT-LEAK-9f3a';
 
 // Build a config object seeded with the token in every credential-bearing field:
-// headers (Authorization) + basic-auth `auth` + `proxy.auth`. `upper` swaps the
+// headers (Authorization) + basic-auth `auth` + `proxy.auth` + the outgoing request
+// body `data` (certificate private_key / Storage Box password). `upper` swaps the
 // header to a plain-object `AUTHORIZATION` key (non-AxiosHeaders) to exercise the
 // case-insensitive scrub.
 function makeConfig(upper: boolean): AxiosError['config'] {
@@ -19,6 +20,7 @@ function makeConfig(upper: boolean): AxiosError['config'] {
     headers,
     auth: { username: 'u', password: TOKEN },
     proxy: { host: 'proxy', port: 8080, auth: { username: 'p', password: TOKEN } },
+    data: { private_key: TOKEN, password: TOKEN },
   } as unknown as AxiosError['config'];
 }
 
@@ -130,6 +132,18 @@ describe('wrapHetznerError token redaction', () => {
   it('returns a non-Axios error unchanged', () => {
     const plain = new Error('plain');
     expect(wrapHetznerError(plain)).toBe(plain);
+  });
+
+  it('scrubs request-body secrets on config.data (#51)', () => {
+    const err = makeAxiosError({
+      withResponse: {
+        status: 500,
+        statusText: 'Internal Server Error',
+        data: { error: { code: 'service_error', message: 'boom' } },
+      },
+    });
+    const wrapped = wrapHetznerError(err);
+    expect(util.inspect(wrapped, { depth: null })).not.toContain(TOKEN);
   });
 });
 

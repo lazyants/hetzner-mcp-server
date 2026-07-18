@@ -334,6 +334,30 @@ describe('Rate-limit retry interceptor', () => {
     expect(config.__retryCount).toBe(1);
   });
 
+  it('falls back to exponential backoff when ratelimit-reset is malformed (not a number)', async () => {
+    const config = { __retryCount: 0 } as any;
+    const error = {
+      response: {
+        status: 429,
+        headers: { 'ratelimit-reset': 'not-a-number' },
+      },
+      config,
+    };
+
+    mockRequest.mockResolvedValue({ data: 'ok' });
+
+    const retryPromise = errorHandler(error);
+    // 2^0 * 1000 = 1000ms exponential fallback — must not fire early on a malformed header.
+    await vi.advanceTimersByTimeAsync(999);
+    expect(mockRequest).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(1);
+    await retryPromise;
+
+    expect(config.__retryCount).toBe(1);
+    expect(mockRequest).toHaveBeenCalledWith(config);
+  });
+
   it('rejects after MAX_RETRIES exceeded', async () => {
     const config = { __retryCount: 3 } as any;
     const error = {
