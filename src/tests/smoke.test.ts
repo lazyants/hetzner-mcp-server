@@ -1,22 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
-import { registerServerTools } from '../tools/servers.js';
-import { registerImageTools } from '../tools/images.js';
-import { registerIsoTools } from '../tools/isos.js';
-import { registerPlacementGroupTools } from '../tools/placement-groups.js';
-import { registerDatacenterTools } from '../tools/datacenters.js';
-import { registerNetworkTools } from '../tools/networks.js';
-import { registerFirewallTools } from '../tools/firewalls.js';
-import { registerLoadBalancerTools } from '../tools/load-balancers.js';
-import { registerCertificateTools } from '../tools/certificates.js';
-import { registerVolumeTools } from '../tools/volumes.js';
-import { registerFloatingIpTools } from '../tools/floating-ips.js';
-import { registerPrimaryIpTools } from '../tools/primary-ips.js';
-import { registerSshKeyTools } from '../tools/ssh-keys.js';
-import { registerDnsZoneTools } from '../tools/zones.js';
-import { registerPricingTools } from '../tools/pricing.js';
-import { registerStorageBoxTools } from '../tools/storage-boxes.js';
+import { ALL_REGISTRARS, SPLITS, TOTAL_TOOL_COUNT } from '../splits.js';
 
 function toolCount(server: McpServer): number {
   // _registeredTools is a plain object keyed by tool name
@@ -30,78 +15,20 @@ function freshServer(name = 'test-server'): McpServer {
 describe('Tool registration smoke tests', () => {
   it('registers all 185 tools for full server', () => {
     const server = freshServer();
-    registerServerTools(server);
-    registerImageTools(server);
-    registerIsoTools(server);
-    registerPlacementGroupTools(server);
-    registerDatacenterTools(server);
-    registerPricingTools(server);
-    registerNetworkTools(server);
-    registerFirewallTools(server);
-    registerLoadBalancerTools(server);
-    registerCertificateTools(server);
-    registerVolumeTools(server);
-    registerFloatingIpTools(server);
-    registerPrimaryIpTools(server);
-    registerSshKeyTools(server);
-    registerStorageBoxTools(server);
-    registerDnsZoneTools(server);
-    expect(toolCount(server)).toBe(185);
+    for (const register of ALL_REGISTRARS) {
+      register(server);
+    }
+    expect(toolCount(server)).toBe(TOTAL_TOOL_COUNT);
+    expect(TOTAL_TOOL_COUNT).toBe(185); // pin the literal so a split-count edit is deliberate
   });
 
-  it('registers 34 tools for servers split', () => {
-    const server = freshServer();
-    registerServerTools(server);
-    registerDatacenterTools(server);
-    registerPricingTools(server);
-    expect(toolCount(server)).toBe(34);
-  });
-
-  it('registers 21 tools for networking split', () => {
-    const server = freshServer();
-    registerNetworkTools(server);
-    registerFirewallTools(server);
-    expect(toolCount(server)).toBe(21);
-  });
-
-  it('registers 28 tools for load-balancers split', () => {
-    const server = freshServer();
-    registerLoadBalancerTools(server);
-    registerCertificateTools(server);
-    expect(toolCount(server)).toBe(28);
-  });
-
-  it('registers 20 tools for ips split', () => {
-    const server = freshServer();
-    registerFloatingIpTools(server);
-    registerPrimaryIpTools(server);
-    expect(toolCount(server)).toBe(20);
-  });
-
-  it('registers 17 tools for storage split', () => {
-    const server = freshServer();
-    registerVolumeTools(server);
-    registerImageTools(server);
-    expect(toolCount(server)).toBe(17);
-  });
-
-  it('registers 14 tools for config split', () => {
-    const server = freshServer();
-    registerSshKeyTools(server);
-    registerIsoTools(server);
-    registerPlacementGroupTools(server);
-    expect(toolCount(server)).toBe(14);
-  });
-
-  it('registers 22 tools for dns split', () => {
-    const server = freshServer();
-    registerDnsZoneTools(server);
-    expect(toolCount(server)).toBe(22);
-  });
-
-  it('registers 29 tools for storage-boxes split', () => {
-    const server = freshServer();
-    registerStorageBoxTools(server);
-    expect(toolCount(server)).toBe(29);
-  });
+  for (const [name, split] of Object.entries(SPLITS)) {
+    it(`registers ${split.toolCount} tools for ${name} split`, () => {
+      const server = freshServer();
+      for (const register of split.registrars) {
+        register(server);
+      }
+      expect(toolCount(server)).toBe(split.toolCount);
+    });
+  }
 });

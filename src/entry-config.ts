@@ -1,15 +1,14 @@
 #!/usr/bin/env node
 import { createServer, startServer } from './server.js';
-import { registerSshKeyTools } from './tools/ssh-keys.js';
-import { registerIsoTools } from './tools/isos.js';
-import { registerPlacementGroupTools } from './tools/placement-groups.js';
+import { SPLITS } from './splits.js';
 import { registerReferenceResource } from './resources/hetzner-reference.js';
 
-const server = createServer('hetzner-mcp-config');
+const split = SPLITS.config;
+const server = createServer(split.bin);
 
-registerSshKeyTools(server);
-registerIsoTools(server);
-registerPlacementGroupTools(server);
+for (const register of split.registrars) {
+  register(server);
+}
 registerReferenceResource(server);
 
 startServer(server).catch((err) => {

@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 import { createServer, startServer } from './server.js';
-import { registerStorageBoxTools } from './tools/storage-boxes.js';
+import { SPLITS } from './splits.js';
 import { registerReferenceResource } from './resources/hetzner-reference.js';
 
-const server = createServer('hetzner-mcp-storage-boxes');
+const split = SPLITS['storage-boxes'];
+const server = createServer(split.bin);
 
-registerStorageBoxTools(server);
+for (const register of split.registrars) {
+  register(server);
+}
 registerReferenceResource(server);
 
 startServer(server).catch((err) => {

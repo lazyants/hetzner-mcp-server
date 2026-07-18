@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 import { createServer, startServer } from './server.js';
-import { registerVolumeTools } from './tools/volumes.js';
-import { registerImageTools } from './tools/images.js';
+import { SPLITS } from './splits.js';
 import { registerReferenceResource } from './resources/hetzner-reference.js';
 
-const server = createServer('hetzner-mcp-storage');
+const split = SPLITS.storage;
+const server = createServer(split.bin);
 
-registerVolumeTools(server);
-registerImageTools(server);
+for (const register of split.registrars) {
+  register(server);
+}
 registerReferenceResource(server);
 
 startServer(server).catch((err) => {
