@@ -42,9 +42,9 @@ Before creating or modifying a tool:
 
 - [ ] Tool name follows `hetzner_<action>_<resource>` convention
 - [ ] Description is 1-2 sentences, under 40 words
-- [ ] Annotations match the action verb. Every tool in `src/tools/` follows this exactly — measured
-      2026-08-20, no exceptions within a verb. `openWorldHint` is `true` everywhere; each of these
-      tools calls the Hetzner API.
+- [ ] Annotations are correct. `openWorldHint: true` on every tool — they all call the Hetzner API.
+      For the rest, **the verb determines the hints only for the five CRUD verbs below**; measured
+      across `src/tools/` on 2026-08-20, these five have no exceptions:
 
       | Verb | `readOnlyHint` | `destructiveHint` | `idempotentHint` |
       |---|---|---|---|
@@ -53,12 +53,14 @@ Before creating or modifying a tool:
       | `delete` | `false` | `true` | `true` |
       | `create` | `false` | `false` | `false` |
 
-      For a verb not listed, copy the closest existing tool rather than inventing a combination.
-- [ ] All imports use `.js` extension
-- [ ] No `.strict()` on Zod schemas
-- [ ] Handler passed through `handleToolRequest()` — it owns BOTH the try/catch → `toolError()`
-      conversion and the `formatResponse()` return. Do **not** add your own try/catch or return
-      `formatResponse(data)` explicitly; no existing registration in `src/tools/` does.
+      **For any other verb, derive the hints from the operation's side effects, not from its name.**
+      `change`, `disable`, `enable`, `reset` and `set` each carry more than one combination in this
+      repo precisely because the side effects differ — `hetzner_change_alias_ips` is destructive
+      while most `change_*` tools are not, and `hetzner_change_storage_box_type` is non-idempotent
+      while most are. Ask: does re-running it change anything further (`idempotentHint`), and can it
+      destroy or interrupt something the caller would want to confirm (`destructiveHint`)? Then
+      cross-check against the closest semantic analogue, not the closest verb.
+
 - [ ] `npm run build` passes
 - [ ] `npm test` passes (update smoke test counts if tools were added/removed)
 
