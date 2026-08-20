@@ -61,6 +61,11 @@ Before creating or modifying a tool:
       destroy or interrupt something the caller would want to confirm (`destructiveHint`)? Then
       cross-check against the closest semantic analogue, not the closest verb.
 
+- [ ] All imports use `.js` extension
+- [ ] No `.strict()` on Zod schemas
+- [ ] Handler passed through `handleToolRequest()` — it owns BOTH the try/catch → `toolError()`
+      conversion and the `formatResponse()` return. Do **not** add your own try/catch or return
+      `formatResponse(data)` explicitly; no existing registration in `src/tools/` does.
 - [ ] `npm run build` passes
 - [ ] `npm test` passes (update smoke test counts if tools were added/removed)
 
