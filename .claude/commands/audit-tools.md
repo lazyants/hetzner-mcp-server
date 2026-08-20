@@ -18,8 +18,10 @@ grep -rn "\.strict()" src/tools/*.ts src/schemas/*.ts
 Expected: no output
 
 ### 3. All imports use `.js` extension
+Match **both** `./` and `../` specifiers — this repo already has same-directory imports
+(`src/tools/storage-boxes.ts`), so a `../`-only pattern would let a new `from './x'` through:
 ```bash
-grep -rn "from '\.\." src/tools/*.ts src/services/*.ts src/schemas/*.ts | grep -v "\.js'"
+grep -rnE "from '\.\.?/" src/tools/*.ts src/services/*.ts src/schemas/*.ts | grep -v "\.js'"
 ```
 Expected: no output
 
@@ -70,15 +72,21 @@ grep -oP "description: '[^']*'" src/tools/*.ts | awk -F"'" '{n=split($2,a," "); 
 ### 7. All handlers go through `handleToolRequest()`
 `toolError()` and `formatResponse()` are called *by* `handleToolRequest()`; no tool file calls
 `toolError` itself, so counting it reports zero for all 185 tools. Check the wrapper instead — every
-`registerTool` should have a matching `handleToolRequest`:
+`registerTool` should have a matching `handleToolRequest` **call site**.
+
+Count call sites only. Every module that uses the wrapper also *imports* it, so a naive
+`grep -c handleToolRequest` returns `registerTool + 1` on a clean file — and a check written as
+`r > h` would then stay silent until a *second* handler lost its wrapper, missing exactly one per
+file:
 ```bash
 for f in src/tools/*.ts; do
-  r=$(grep -c "server\.registerTool" "$f"); h=$(grep -c "handleToolRequest" "$f")
-  [ "$r" -gt "$h" ] && echo "$f: $r registerTool vs $h handleToolRequest"
+  r=$(grep -c "server\.registerTool" "$f")
+  h=$(grep -cE "handleToolRequest\(" "$f")
+  [ "$r" -ne "$h" ] && echo "$f: $r registerTool vs $h handleToolRequest call sites"
 done
 ```
-Expected: no output. A bare try/catch with `toolError()` in a tool file is itself a finding — it
-duplicates the shared wrapper.
+Expected: no output. Note `-ne`, not `-gt`: a count above `registerTool` is equally a finding. A bare
+try/catch with `toolError()` in a tool file is also a finding — it duplicates the shared wrapper.
 
 ### 8. Build check
 ```bash

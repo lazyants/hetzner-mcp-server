@@ -1,10 +1,16 @@
 # hetzner-mcp-server
 
-Guidance for working in this repository. **Self-contained** — everything needed to work here safely
-is below. If you are in the `lazy-ants/development/mcp/` fleet checkout, the fleet-root `CLAUDE.md`
-one directory up carries the same cross-cutting rules plus fleet-only material (the publishing
-playbook, the hygiene skill, the sibling servers). A standalone clone of this repo does not have it
-and does not need it.
+Guidance for working in this repository. It carries the **coding and convention** rules — enough to
+write and review code here without another file. It is deliberately NOT the whole story:
+
+- **Validation and CI** are defined by `.github/workflows/test.yml` (the required sequence: `npm ci`,
+  lint, `node scripts/check-versions.mjs`, `npm audit --audit-level=moderate --omit=dev`, build,
+  tests, on the Node 20 + 22 matrix). Read that file — it is versioned here and is the source of
+  truth, not a summary of it.
+- **Releasing** is in `README.md` § Releasing, including the guarded tagging sequence.
+- **Fleet-wide material** — the publishing playbook, the hygiene skill, the sibling servers — is in
+  the fleet-root `CLAUDE.md` of the `lazy-ants/development/mcp/` checkout. A standalone clone does
+  not have it; everything needed to work in *this* repo is here or in the two files named above.
 
 ## Cross-cutting rules (all three lazy-ants MCP servers)
 
@@ -23,8 +29,11 @@ and does not need it.
 - **`@types/node` is capped at the `engines.node` floor** (Node 20). Reject Dependabot major bumps.
 - **Git**: commit right after a change, present-tense imperative subject, never `git add -A`/`.`,
   no `Co-Authored-By` or "Generated with" trailers. Default branch `main`.
-- **Counts in this file are pinned by `src/tests/smoke.test.ts`.** It is the source of truth — if a
-  number here and a number there disagree, the test wins and this file is stale.
+- **Do not add a structural count to this file that no test enforces.** `src/tests/smoke.test.ts`
+  pins the tool-registration counts and nothing else — not module counts, not file counts, not
+  dependency versions. Every other number rots silently, so this file names the command that
+  produces the figure instead of the figure. If you find a bare count here, it is a bug: replace it
+  with its command or delete it.
 
 ## Repository specifics
 
@@ -46,8 +55,11 @@ and does not need it.
 - **Path segments**: use `pathSeg()` — already exported from `src/schemas/common.ts` — together with
   `PathSegmentSchema` / `IdOrNameSchema`. Do not hand-roll `encodeURIComponent`: it does not escape
   `.` or `..`, which is a path-traversal risk for string-keyed resources.
-- **Layout**: 1 main + 8 split entry points + 19 tool modules + 185 tools across 15 domains
-  (`TOTAL_TOOL_COUNT` is pinned at 185 in `src/tests/smoke.test.ts`).
+- **Layout**: 1 main + 8 split entry points + the tool modules under `src/tools/`
+  (`ls src/tools/*.ts | wc -l` — 19 on 2026-08-20, not pinned by any test) + 185 tools across 15
+  domains. **The tool counts below ARE enforced**: `smoke.test.ts` asserts `TOTAL_TOOL_COUNT === 185`
+  and iterates `SPLITS` asserting every per-split `toolCount`, so the table's numbers cannot drift
+  without a red test.
 
   | Entry | Bin | Domains | Tools |
   |---|---|---|---|
