@@ -20,14 +20,19 @@ Before creating or modifying a tool:
 
 1. **Types** — Add/update response interfaces in `src/types/<domain>.ts`
 2. **Tools** — Add `server.registerTool()` call in `src/tools/<domain>.ts` inside the `register*Tools` function
-3. **Wire** — Import and call the register function in the correct entry point(s). The layout is 1 main (`src/index.ts`) + 7 split entries (including `entry-dns`), documented in fleet `CLAUDE.md`; register in `src/index.ts` (the all-tools binary) AND in the matching split entry:
-   - Servers, Reference Data (datacenters/locations/server-types), Pricing → `src/entry-servers.ts` + `src/index.ts`
-   - Networks, Firewalls → `src/entry-networking.ts` + `src/index.ts`
-   - Load Balancers, Certificates → `src/entry-load-balancers.ts` + `src/index.ts`
-   - Floating IPs, Primary IPs → `src/entry-ips.ts` + `src/index.ts`
-   - Volumes, Images → `src/entry-storage.ts` + `src/index.ts`
-   - SSH Keys, ISOs, Placement Groups → `src/entry-config.ts` + `src/index.ts`
-   - DNS Zones → `src/entry-dns.ts` + `src/index.ts`
+3. **Wire — edit `src/splits.ts` and nothing else.** It is the single source of truth for the
+   registrar partition. `src/index.ts` and all 8 `src/entry-*.ts` binaries consume `ALL_REGISTRARS`
+   / `SPLITS` from it and import **no** tool registrar directly, so editing an entry file is both
+   unnecessary and wrong. Add the registrar to the right `SPLITS` key and bump that split's
+   `toolCount`:
+   - Servers, Reference Data (datacenters/locations/server-types), Pricing → `servers`
+   - Networks, Firewalls → `networking`
+   - Load Balancers, Certificates → `load-balancers`
+   - Floating IPs, Primary IPs → `ips`
+   - Volumes, Images → `storage`
+   - Storage Boxes → `storage-boxes`
+   - SSH Keys, ISOs, Placement Groups → `config`
+   - DNS Zones → `dns`
 4. **Build** — `npm run build`
 5. **Test** — `npm test` (smoke tests verify tool counts — update expected counts if adding tools)
 6. **Verify** — `HETZNER_API_TOKEN=test node dist/index.js` starts without error
@@ -39,8 +44,9 @@ Before creating or modifying a tool:
 - [ ] Annotations match action type (see table in CLAUDE.md)
 - [ ] All imports use `.js` extension
 - [ ] No `.strict()` on Zod schemas
-- [ ] Handler wrapped in try/catch with `toolError()`
-- [ ] Handler returns `formatResponse(data)`
+- [ ] Handler passed through `handleToolRequest()` — it owns BOTH the try/catch → `toolError()`
+      conversion and the `formatResponse()` return. Do **not** add your own try/catch or return
+      `formatResponse(data)` explicitly; none of the 185 existing registrations does.
 - [ ] `npm run build` passes
 - [ ] `npm test` passes (update smoke test counts if tools were added/removed)
 
@@ -52,14 +58,25 @@ Before creating or modifying a tool:
 
 ## Common Patterns
 
+Each is the body of a `handleToolRequest(async (params) => { ... })` callback — return the raw
+value, not a `CallToolResult`.
+
 **GET (list/get):** `hetznerRequest('GET', '/resource', undefined, params)`
 **POST (create/action):** `hetznerRequest('POST', '/resource', body)`
 **PUT (update):** `const { id, ...body } = params; hetznerRequest('PUT', \`/resource/\${id}\`, body)`
 **DELETE:** `hetznerRequest('DELETE', \`/resource/\${params.id}\`)`
+**Storage Box:** `storageBoxRequest(...)` — a second client on `api.hetzner.com`, not `api.hetzner.cloud`.
 
 ## Gotchas
 
-- **String-typed identifiers (`id_or_name`) must be URL-encoded before interpolation.** Hetzner's DNS Zones API (and any other resource that accepts a name *or* numeric ID) takes a `string` identifier. Raw template-literal interpolation lets `?`, `#`, `%`, `/`, `@` break out of the path segment — codex caught this on PR #24 as a path-injection vector. The encoder is a private `pathSeg(s: string)` helper inside `src/tools/zones.ts` (a thin `encodeURIComponent` wrapper) — it is NOT exported from `src/services/hetzner.ts`. Numeric `IdSchema` path segments (positive integer) need NO encoding — Zod rejects non-integers before the template runs, so injection isn't reachable. If a NEW tool ever takes a string name in the path, extract a shared helper at that point rather than assuming one already exists; do not reach for a non-existent `services/hetzner.ts` export.
+- **String-typed identifiers (`id_or_name`) must go through the shared `pathSeg()` helper.** It is
+  exported from `src/schemas/common.ts` (`zones.ts` imports it from there) and is paired with
+  `PathSegmentSchema` / `IdOrNameSchema`. Use all three together for any resource that accepts a
+  name *or* numeric ID. Do **not** hand-roll `encodeURIComponent`: it does not escape `.` or `..`,
+  so a bare wrapper reintroduces path traversal — which is why the schemas exist alongside the
+  helper. Raw template-literal interpolation additionally lets `?`, `#`, `%`, `/`, `@` break out of
+  the path segment; codex caught that on PR #24. Numeric `IdSchema` segments need no encoding — Zod
+  rejects non-integers before the template runs.
 - **Prefer the OpenAPI `cloud.spec.json` for endpoint existence and request/response schemas; use `hcloud-go` as a cross-check only — it is permitted to lag behind the REST spec.** The server calls the REST API directly, so the spec is authoritative (e.g. `POST /load_balancers/{id}/actions/change_dns_ptr` exists in `cloud.spec.json` but is absent from `hcloud-go`). Three plan-time docs-site inaccuracies surfaced in this fleet, all resolved against the spec/SDK: (a) `POST /zones/.../validate` doesn't exist; (b) the export/import paths are `GET /zones/.../zonefile` and `POST /zones/.../actions/import_zonefile`, NOT `/export` and `/import`; (c) `enable_backup` has no body (the `backup_window` field is deprecated). Re-read the spec at build time before shipping.
 - **Hetzner deprecated per-action-id GET endpoints (April 2026).** Do NOT add `hetzner_get_<resource>_action` tools — only `hetzner_list_<resource>_actions` is forward-compatible. Applies fleet-wide (servers, LBs, volumes, networks, FIPs, PIPs, certificates, images, zones).
 - **`paramsSerializer: { indexes: null }` in `src/services/hetzner.ts` is load-bearing.** Hetzner expects repeated query keys (`?type=A&type=AAAA`), but axios defaults to `?type[]=A&type[]=AAAA`. If you add array-valued query params, verify against the docs that Hetzner accepts them in the repeated-key form. The serializer was added in PR #24.
