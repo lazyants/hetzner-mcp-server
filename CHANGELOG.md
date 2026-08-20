@@ -14,8 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The publish workflow fails before `npm publish` when the GitHub Release tag
   and `package.json` version disagree. `check-versions.mjs` proved that
-  `package.json`, `server.json` and the lockfile agreed with each other, but
-  nothing tied that version to the tag the release was cut from — so tagging
+  `package.json` and `server.json` agreed with each other — it does not read
+  `package-lock.json` in this repo — but nothing tied that version to the tag
+  the release was cut from — so tagging
   `v1.9.0` on a commit reading `2.0.0` would have published 2.0.0 to npm and the
   MCP Registry while the GitHub Release — the artifact humans read — claimed
   otherwise, silently and on the irreversible side of the publish. Ported from
