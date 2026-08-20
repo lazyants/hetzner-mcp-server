@@ -8,6 +8,76 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - npm package: [`@lazyants/hetzner-mcp-server`](https://www.npmjs.com/package/@lazyants/hetzner-mcp-server)
 - MCP Registry: [`io.github.lazyants/hetzner`](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.lazyants/hetzner)
 
+## [2.4.0] — 2026-08-20
+
+### Added
+
+- `hetzner_create_server` now accepts a `volumes` array, so volumes can be attached
+  at creation time instead of requiring a separate attach call — the `automount`
+  flag already referenced volumes but there was no way to supply them (#64).
+- `hetzner_list_server_actions` gains `sort` and `status` filters, bringing it in
+  line with the other ten `list_<resource>_actions` tools (#64).
+- `hetzner_create_primary_ip` gains an optional `assignee_id`, so a Primary IP can
+  be created and assigned in one call (#63).
+- `PathSegmentSchema` in `schemas/common.ts`: a second guard layer alongside
+  `pathSeg()` that rejects `.`, `..`, empty and embedded-slash values before a URL
+  is built. `encodeURIComponent` never escapes `.`, so `pathSeg('..')` was a no-op.
+  Applied to `IdOrNameSchema` and the nine path-interpolated zone RRSet `name`
+  fields (#66).
+
+### Changed
+
+- **`hetzner_create_primary_ip`: the `datacenter` parameter is replaced by
+  `location`.** Hetzner removed `datacenter` from `POST /primary_ips`
+  (`additionalProperties: false`), so calls passing it were already being rejected
+  upstream. `location` matches the convention used by servers, volumes and load
+  balancers (#63).
+- `assignee_type` is now pinned explicitly whenever `assignee_id` is supplied
+  without it. Hetzner's default flips from `server` to `unassigned` on 2026-08-01,
+  which would have silently stopped create-and-assign calls from assigning (#63).
+- `index.ts` and the eight `entry-*.ts` binaries iterate a shared `SPLITS` /
+  `ALL_REGISTRARS` map from the new `src/splits.ts` instead of hand-listing
+  `register*Tools` calls, so the entry-point partition can no longer drift between
+  runtime wiring and the tests asserting tool counts (#67).
+- Removed the unused `src/types/` tree (15 files); `ZONE_RRSET_TYPES` moved to its
+  sole consumer, and `MAX_PER_PAGE` is now the single source of the `per_page`
+  ceiling in `PaginationParams` (#66).
+- Extracted an `rrsetPath()` helper so the zone/name/type path is built and
+  encoded in exactly one place (#66).
+
+### Fixed
+
+- **429 backoff was defeated by malformed headers.** `Retry-After` and
+  `ratelimit-reset` were parsed with a bare `parseInt`, which returns `NaN` for an
+  HTTP-date `Retry-After`; `Math.max(0, NaN)` is `NaN` and `setTimeout(NaN)` fires
+  immediately, so a rate-limited request retried in a tight loop. Ported lexware's
+  `parseRetryAfterMs` (delta-seconds plus strict IMF-fixdate parsing, clamped to
+  the `setTimeout` ceiling) and guarded the `ratelimit-reset` fallback with a strict
+  `/^\d+$/` parse so a malformed value falls back to exponential backoff (#61, #65).
+
+### Security
+
+- **Request-body secrets are now scrubbed from chained error causes.**
+  `scrubConfig` left `config.data` — the serialized request body — intact when an
+  `AxiosError` was chained as `{ cause: err }`, so a certificate `private_key`, a
+  Storage Box `password`, or a DNS TSIG key could reach a logger walking the cause
+  via `util.inspect(err, { depth: null })` or `AxiosError.toJSON()` (#51, #65).
+- Regenerated `package-lock.json` to clear the `npm audit` gate, which had gone red
+  as the advisory database moved: 6 production vulnerabilities, 3 high
+  (`fast-uri`, `axios`, `ip-address` high; `hono`, `@hono/node-server` moderate;
+  `body-parser` low). No manifest change was needed — every package resolved past
+  its advisory range within the ranges already declared (#71, #73).
+
+### Internal
+
+- Test-coverage gaps closed by the `splits.ts` refactor: the Zod-4
+  `required[]`/`describe` enumeration test was building its "full server" from 15 of
+  16 registrars (156 of 185 tools, omitting Storage Boxes) and now covers all 185;
+  the annotation test swept 3 registrars and now sweeps every registered tool for
+  boolean-hint presence and the read-only/destructive exclusivity invariant. The
+  `get_action`-exclusion GET scan was widened to also catch `storageBoxRequest`
+  calls (#53, #67).
+
 ## [2.3.1] — 2026-06-22
 
 ### Security
