@@ -13,7 +13,8 @@ Before creating or modifying a tool:
 
 1. **Check Hetzner API docs** at https://docs.hetzner.cloud/ for the endpoint's exact path, method, request body, and response shape
 2. **Review an existing similar tool file** — find the closest domain in `src/tools/` and follow its patterns exactly
-3. **Confirm which split server** the tool belongs to (see entry point table in CLAUDE.md)
+3. **Confirm which split the tool belongs to** — read `src/splits.ts`, the authoritative partition.
+   `CLAUDE.md` deliberately no longer duplicates it.
 4. **Check `.claude/shared/hetzner-api-reference.md`** for API conventions (pagination, errors, rate limits)
 
 ## Implementation Workflow
@@ -21,7 +22,7 @@ Before creating or modifying a tool:
 1. **Types** — Add/update response interfaces in `src/types/<domain>.ts`
 2. **Tools** — Add `server.registerTool()` call in `src/tools/<domain>.ts` inside the `register*Tools` function
 3. **Wire — edit `src/splits.ts` and nothing else.** It is the single source of truth for the
-   registrar partition. `src/index.ts` and all 8 `src/entry-*.ts` binaries consume `ALL_REGISTRARS`
+   registrar partition. `src/index.ts` and every `src/entry-*.ts` binary consume `ALL_REGISTRARS`
    / `SPLITS` from it and import **no** tool registrar directly, so editing an entry file is both
    unnecessary and wrong. Add the registrar to the right `SPLITS` key and bump that split's
    `toolCount`:
@@ -41,18 +42,32 @@ Before creating or modifying a tool:
 
 - [ ] Tool name follows `hetzner_<action>_<resource>` convention
 - [ ] Description is 1-2 sentences, under 40 words
-- [ ] Annotations match action type (see table in CLAUDE.md)
+- [ ] Annotations match the action verb. Every tool in `src/tools/` follows this exactly — measured
+      2026-08-20, no exceptions within a verb. `openWorldHint` is `true` everywhere; each of these
+      tools calls the Hetzner API.
+
+      | Verb | `readOnlyHint` | `destructiveHint` | `idempotentHint` |
+      |---|---|---|---|
+      | `get`, `list` | `true` | `false` | `true` |
+      | `update` | `false` | `false` | `true` |
+      | `delete` | `false` | `true` | `true` |
+      | `create` | `false` | `false` | `false` |
+
+      For a verb not listed, copy the closest existing tool rather than inventing a combination.
 - [ ] All imports use `.js` extension
 - [ ] No `.strict()` on Zod schemas
 - [ ] Handler passed through `handleToolRequest()` — it owns BOTH the try/catch → `toolError()`
       conversion and the `formatResponse()` return. Do **not** add your own try/catch or return
-      `formatResponse(data)` explicitly; none of the 185 existing registrations does.
+      `formatResponse(data)` explicitly; no existing registration in `src/tools/` does.
 - [ ] `npm run build` passes
 - [ ] `npm test` passes (update smoke test counts if tools were added/removed)
 
 ## References
 
-- **Patterns & rules** → `CLAUDE.md` (tool registration pattern, annotations table, critical rules)
+- **Conventions & critical rules** → `CLAUDE.md` (naming, wiring via `src/splits.ts`, the
+  `handleToolRequest` contract, the `pathSeg` path-traversal rule)
+- **Split partition, registrars, per-split tool counts** → `src/splits.ts`
+- **Tool registration pattern** → the closest existing module in `src/tools/`
 - **API conventions** → `.claude/shared/hetzner-api-reference.md`
 - **Audit tool** → Run `/audit-tools` to check all conventions across the codebase
 
