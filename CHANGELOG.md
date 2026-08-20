@@ -38,6 +38,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   range predates the widening. Ported from lexware-mcp-server 5.2.0 (lexware
   #81).
 
+### Security
+
+- Refreshed the `overrides` floors. Three had drifted inside live advisory
+  ranges and two packages that reach the production audit gate were not pinned
+  at all — verified against the GitHub advisory API on 2026-08-20:
+
+  | Package | Was | Now | Advisory range |
+  |---|---|---|---|
+  | `fast-uri` | `^3.1.2` | `^3.1.5` | GHSA-7p8r-x3mc-p8w7, `>=3.0.0 <3.1.5` |
+  | `brace-expansion` | `^5.0.6` | `^5.0.9` | GHSA-rgw5-rvv9-x895, `>=4.0.0 <5.0.9` |
+  | `hono` | `^4.12.25` | `^4.12.34` | GHSA-8j4g-w8fx-2239 et al., `<4.12.34` |
+  | `ip-address` | unpinned | `^10.3.1` | GHSA-mwp4-54f8-5fhr, `<=10.3.0` |
+  | `body-parser` | unpinned | `^2.3.0` | GHSA-v422-hmwv-36x6, `>=2.0.0 <2.3.0` |
+
+  `package-lock.json` is unchanged: every resolved version was already above the
+  new floors, so this closes a latent gap rather than a live one, and the audit
+  gate was green before and after. The unpinned entries are the dangerous ones —
+  an `overrides` entry is the only thing that pulls a sticky lockfile forward on
+  install, so an unpinned transitive dep is the one that drifts *into* a range
+  while pinned ones re-resolve themselves.
+
+- The override guard test now covers every pin. It asserted only `qs`, `hono`
+  and `form-data`, leaving `fast-uri` and `brace-expansion` declared but
+  unchecked — a pin nothing checks is indistinguishable from no pin once it
+  rots. The six hand-rolled assertions are replaced by a `PINS` table plus a
+  completeness assertion that fails when the `overrides` block and the table
+  disagree in either direction, so a pin cannot be added without a guard. Both
+  directions were vacuity-probed rather than assumed.
+
 ## [2.4.0] — 2026-08-20
 
 ### Added

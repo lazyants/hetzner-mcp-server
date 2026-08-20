@@ -1,10 +1,21 @@
 import { describe, it, expect } from 'vitest';
 import { createRequire } from 'node:module';
 
-// Regression catcher for the qs DoS audit gate (GHSA-q8mj-m7cp-5q26) and the
-// hono GHSAs. Asserts BOTH layers so a stale lockfile can't mask a deleted
-// override block: (a) the override declarations in package.json, and (b) every
-// resolved qs/hono entry in the committed package-lock.json.
+// Regression catcher for the npm-audit gate. Asserts BOTH layers so a stale
+// lockfile can't mask a deleted override block: (a) the override declaration in
+// package.json, and (b) every resolved entry in the committed package-lock.json.
+//
+// EVERY entry in the `overrides` block belongs in PINS below. This file
+// previously hand-rolled assertions for qs, hono and form-data only, leaving
+// fast-uri and brace-expansion declared but unguarded — a pin nothing checks is
+// indistinguishable from no pin once it rots.
+//
+// NOTE: a pin that was correct when written can rot in place, because advisory
+// ranges are EXTENDED by later GHSAs. `fast-uri ^3.1.2`, `hono ^4.12.25` and
+// `brace-expansion ^5.0.6` had all drifted inside live ranges by 2026-08-20
+// while this suite stayed green — the assertion can only check the floor it is
+// given. Re-read the advisory before trusting a number here; a green run is not
+// evidence the floor is still correct.
 const require = createRequire(import.meta.url);
 const pkg = require('../../package.json') as {
   overrides?: Record<string, string>;
@@ -46,42 +57,59 @@ function resolvedVersions(name: string): string[] {
   return versions;
 }
 
-describe('qs/hono security overrides', () => {
-  it('declares the qs override pinned to ^6.15.2 in package.json', () => {
-    expect(pkg.overrides?.qs).toBe('^6.15.2');
+interface Pin {
+  /** Package name, as it appears in `overrides` and in lockfile paths. */
+  name: string;
+  /** Lowest safe version: the manifest declares `^<floor>`, every resolved entry must be >= it. */
+  floor: string;
+  /** Advisory the pin answers, and the date the floor was last checked against it. */
+  advisory: string;
+}
+
+const PINS: Pin[] = [
+  { name: 'qs', floor: '6.15.2', advisory: 'GHSA-q8mj-m7cp-5q26 DoS (checked 2026-08-20)' },
+  // Advisory range currently reaches < 4.12.34 across four GHSAs.
+  { name: 'hono', floor: '4.12.34', advisory: 'GHSA-8j4g-w8fx-2239 et al. (checked 2026-08-20)' },
+  // Stay on 3.x — ajv declares `fast-uri: ^3.0.1`, so the 4.x branch is out of reach.
+  { name: 'fast-uri', floor: '3.1.5', advisory: 'GHSA-7p8r-x3mc-p8w7 host confusion (checked 2026-08-20)' },
+  // Dev-only (eslint -> minimatch), so it never reaches the `--omit=dev` gate,
+  // but it rots the same way and is guarded here so the rot is visible.
+  { name: 'brace-expansion', floor: '5.0.9', advisory: 'GHSA-rgw5-rvv9-x895 DoS (checked 2026-08-20)' },
+  // Previously unpinned. An `overrides` entry is the only thing that pulls a
+  // sticky lockfile forward on install, which is how an unpinned transitive dep
+  // drifts INTO a range while pinned ones re-resolve themselves.
+  { name: 'ip-address', floor: '10.3.1', advisory: 'GHSA-mwp4-54f8-5fhr SSRF bypass (checked 2026-08-20)' },
+  { name: 'body-parser', floor: '2.3.0', advisory: 'GHSA-v422-hmwv-36x6 DoS via invalid limit (checked 2026-08-20)' },
+  { name: 'form-data', floor: '4.0.6', advisory: 'GHSA-hmw2-7cc7-3qxx CRLF injection (checked 2026-08-20)' },
+];
+
+describe('security overrides (npm-audit gate regression guard)', () => {
+  it('guards every entry in the overrides block', () => {
+    const declared = Object.keys(pkg.overrides ?? {}).sort();
+    const guarded = PINS.map((p) => p.name).sort();
+    expect(guarded, 'every `overrides` entry must have a PINS row, and vice versa').toEqual(declared);
   });
 
-  it('declares the hono override pinned to ^4.12.25 in package.json', () => {
-    expect(pkg.overrides?.hono).toBe('^4.12.25');
-  });
+  // A plain loop rather than `describe.each`, which quotes and truncates
+  // interpolated titles.
+  for (const { name, floor, advisory } of PINS) {
+    describe(`${name} (${advisory})`, () => {
+      it(`declares ^${floor} in package.json overrides`, () => {
+        expect(pkg.overrides?.[name]).toBe(`^${floor}`);
+      });
 
-  it('declares the form-data override pinned to ^4.0.6 in package.json', () => {
-    expect(pkg.overrides?.['form-data']).toBe('^4.0.6');
-  });
-
-  it('resolves every qs in package-lock.json to >= 6.15.2', () => {
-    const versions = resolvedVersions('qs');
-    expect(versions.length).toBeGreaterThan(0);
-    for (const v of versions) {
-      expect(gte(v, '6.15.2'), `qs ${v} is below 6.15.2`).toBe(true);
-    }
-  });
-
-  it('resolves every hono in package-lock.json to >= 4.12.25', () => {
-    const versions = resolvedVersions('hono');
-    expect(versions.length).toBeGreaterThan(0);
-    for (const v of versions) {
-      expect(gte(v, '4.12.25'), `hono ${v} is below 4.12.25`).toBe(true);
-    }
-  });
-
-  it('resolves every form-data in package-lock.json to >= 4.0.6', () => {
-    const versions = resolvedVersions('form-data');
-    expect(versions.length).toBeGreaterThan(0);
-    for (const v of versions) {
-      expect(gte(v, '4.0.6'), `form-data ${v} is below 4.0.6`).toBe(true);
-    }
-  });
+      it(`resolves every lockfile entry to >= ${floor}`, () => {
+        const versions = resolvedVersions(name);
+        // Always assert presence: a pinned package that stops resolving means
+        // this guard silently stopped guarding, which is the exact failure mode
+        // it exists to catch.
+        expect(versions.length, `${name} is pinned but resolves nowhere`).toBeGreaterThan(0);
+        for (const v of versions) {
+          expect(gte(v, floor), `${name} ${v} is below ${floor}`).toBe(true);
+        }
+      });
+    });
+  }
 });
 
 // Direct exercise of the comparator so the prerelease/build-metadata handling
