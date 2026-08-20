@@ -54,7 +54,7 @@
     "qs": "^6.15.2"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "axios": "^1.16.0",
     "zod": "^4.4.3"
   },

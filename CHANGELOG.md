@@ -8,6 +8,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - npm package: [`@lazyants/hetzner-mcp-server`](https://www.npmjs.com/package/@lazyants/hetzner-mcp-server)
 - MCP Registry: [`io.github.lazyants/hetzner`](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.lazyants/hetzner)
 
+## [Unreleased]
+
+### Added
+
+- The publish workflow fails before `npm publish` when the GitHub Release tag
+  and `package.json` version disagree. `check-versions.mjs` proved that
+  `package.json`, `server.json` and the lockfile agreed with each other, but
+  nothing tied that version to the tag the release was cut from — so tagging
+  `v1.9.0` on a commit reading `2.0.0` would have published 2.0.0 to npm and the
+  MCP Registry while the GitHub Release — the artifact humans read — claimed
+  otherwise, silently and on the irreversible side of the publish. Ported from
+  lexware-mcp-server 5.2.0 (lexware #103).
+
+### Changed
+
+- The publish job runs on Node 24 (Active LTS) instead of Node 20. npm's Trusted
+  Publishing prerequisite is two-part — npm 11.5.1+ **and** Node 22.14+ — and
+  the job satisfied only the npm half, leaving the irreversible `npm publish`
+  step one npm patch away from breaking if that floor starts being enforced. The
+  CI *test* matrix stays on Node 20 + 22: it tracks `engines.node`, which is
+  unchanged. Ported from lexware-mcp-server 5.2.0 (lexware #102).
+- Raised the `@modelcontextprotocol/sdk` floor to `^1.30.0`, which declares
+  `@hono/node-server: ^1.19.9 || ^2.0.5` where 1.29.0 declared only `^1.19.9`.
+  A correctness alignment, not a security fix: the resolved tree already carried
+  a patched `@hono/node-server`, and the production audit gate was green before
+  and after. What it buys is that a resolver cannot fall back to an SDK whose
+  range predates the widening. Ported from lexware-mcp-server 5.2.0 (lexware
+  #81).
+
 ## [2.4.0] — 2026-08-20
 
 ### Added
