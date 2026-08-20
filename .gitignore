@@ -2,4 +2,11 @@ node_modules/
 dist/
 .env
 *.tgz
-.claude/
+# Claude Code workspace. `.claude/*` (not `.claude/`) so the shared, repo-specific
+# assets below can be re-included: git cannot re-include a path whose PARENT
+# directory is excluded. settings.json / settings.local.json stay ignored --
+# they are per-machine MCP toggles and permission grants.
+.claude/*
+!.claude/agents/
+!.claude/commands/
+!.claude/shared/
