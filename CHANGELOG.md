@@ -68,6 +68,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `body-parser` low). No manifest change was needed — every package resolved past
   its advisory range within the ranges already declared (#71, #73).
 
+### Removed
+
+- **`dist/types/**` is no longer published (45 files).** The `src/types/` tree was
+  dead code — 14 of its 15 modules exported only TypeScript `interface`
+  declarations, so their compiled `.js` files were empty stubs and no runtime value
+  can break. The single runtime export, `ZONE_RRSET_TYPES`, moved into
+  `src/tools/zones.ts` and is no longer exported from a published path.
+
+  This package declares no `exports` map, so deep imports such as
+  `@lazyants/hetzner-mcp-server/dist/types/servers.js` were resolvable, and **type
+  imports of those interfaces will stop resolving.** No compatibility shim is
+  provided: the package's product is its nine stdio `bin` entries, and no library
+  API is documented. If you were importing these types, copy the interfaces you
+  need — they were never part of a supported surface.
+
 ### Internal
 
 - Test-coverage gaps closed by the `splits.ts` refactor: the Zod-4
