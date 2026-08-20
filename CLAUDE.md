@@ -29,11 +29,11 @@ write and review code here without another file. It is deliberately NOT the whol
 - **`@types/node` is capped at the `engines.node` floor** (Node 20). Reject Dependabot major bumps.
 - **Git**: commit right after a change, present-tense imperative subject, never `git add -A`/`.`,
   no `Co-Authored-By` or "Generated with" trailers. Default branch `main`.
-- **Do not add a structural count to this file that no test enforces.** `src/tests/smoke.test.ts`
-  pins the tool-registration counts and nothing else — not module counts, not file counts, not
-  dependency versions. Every other number rots silently, so this file names the command that
-  produces the figure instead of the figure. If you find a bare count here, it is a bug: replace it
-  with its command or delete it.
+- **This file does not restate structure that lives in code.** No inventories, no counts, no
+  duplicated tables — a copy of a fact rots the moment the code moves, and nothing here is checked
+  by any test. Where you need a structural fact, read the file that owns it (named below in each
+  case) or run the one-liner. If you find a bare count or a duplicated table here, it is a bug:
+  delete it and point at the source.
 
 ## Repository specifics
 
@@ -50,28 +50,17 @@ write and review code here without another file. It is deliberately NOT the whol
   `ALL_REGISTRARS`; `src/index.ts` and every `src/entry-*.ts` consume those and import **no** tool
   registrar directly. Adding a tool module means registering it in `src/splits.ts`.
 - **Handlers use `handleToolRequest()`**, which owns the try/catch → `toolError()` conversion and the
-  `formatResponse()` return. None of the 185 registrations has its own `toolError` call; do not add
+  `formatResponse()` return. No tool registration in this repo has its own `toolError` call; do not add
   per-handler try/catch or an explicit `formatResponse(data)` return.
 - **Path segments**: use `pathSeg()` — already exported from `src/schemas/common.ts` — together with
   `PathSegmentSchema` / `IdOrNameSchema`. Do not hand-roll `encodeURIComponent`: it does not escape
   `.` or `..`, which is a path-traversal risk for string-keyed resources.
-- **Layout**: 1 main + 8 split entry points + the tool modules under `src/tools/`
-  (`ls src/tools/*.ts | wc -l` — 19 on 2026-08-20, not pinned by any test) + 185 tools across 15
-  domains. **The tool counts below ARE enforced**: `smoke.test.ts` asserts `TOTAL_TOOL_COUNT === 185`
-  and iterates `SPLITS` asserting every per-split `toolCount`, so the table's numbers cannot drift
-  without a red test.
-
-  | Entry | Bin | Domains | Tools |
-  |---|---|---|---|
-  | `src/index.ts` | `hetzner-mcp-server` | All 15 | 185 |
-  | `src/entry-servers.ts` | `hetzner-mcp-servers` | Servers, Reference Data | 34 |
-  | `src/entry-networking.ts` | `hetzner-mcp-networking` | Networks, Firewalls | 21 |
-  | `src/entry-load-balancers.ts` | `hetzner-mcp-load-balancers` | Load Balancers, Certificates | 28 |
-  | `src/entry-ips.ts` | `hetzner-mcp-ips` | Floating IPs, Primary IPs | 20 |
-  | `src/entry-storage.ts` | `hetzner-mcp-storage` | Volumes, Images | 17 |
-  | `src/entry-storage-boxes.ts` | `hetzner-mcp-storage-boxes` | Storage Boxes | 29 |
-  | `src/entry-config.ts` | `hetzner-mcp-config` | SSH Keys, ISOs, Placement Groups | 14 |
-  | `src/entry-dns.ts` | `hetzner-mcp-dns` | DNS Zones | 22 |
+- **Layout**: `src/index.ts` (all tools) plus the `src/entry-*.ts` split binaries. **`src/splits.ts`
+  is the authoritative partition** — it names every split, the registrars in it, its `toolCount`,
+  and its `bin`. Do not duplicate that table anywhere: `src/tests/smoke.test.ts` checks the runtime
+  registrations against `SPLITS` itself, so a prose copy is unverified by construction and drifts
+  the moment a split changes. Read `src/splits.ts` for the partition and `package.json` `bin` for
+  the published commands.
 
 - **Helpers**: `toolError(err)` and `formatResponse(data)` return `CallToolResult` from
   `@modelcontextprotocol/sdk/types.js` — both are called for you by `handleToolRequest()`.
