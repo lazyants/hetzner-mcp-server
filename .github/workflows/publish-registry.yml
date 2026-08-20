@@ -45,9 +45,9 @@ jobs:
       - name: Verify version sync
         run: node scripts/check-versions.mjs
 
-      # `check-versions.mjs` proves package.json, server.json and the lockfile
-      # agree with each other, but nothing tied that agreed-upon version to the
-      # tag the release was cut from. For a `release` event GITHUB_REF_NAME is
+      # `check-versions.mjs` proves package.json and server.json agree with each
+      # other (it does not read package-lock.json in this repo), but nothing
+      # tied that agreed-upon version to the tag the release was cut from. For a `release` event GITHUB_REF_NAME is
       # the tag name, so tagging v1.9.0 on a commit whose package.json says
       # 2.0.0 would publish 2.0.0 to npm and the MCP Registry while the GitHub
       # Release — the artifact humans read — claims otherwise, silently, and on
