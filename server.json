@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.lazyants/hetzner",
-  "description": "MCP server for the Hetzner Cloud API \u2014 servers, networks, volumes, firewalls, and more.",
+  "description": "MCP server for the Hetzner Cloud API — servers, networks, volumes, firewalls, and more.",
   "repository": {
     "url": "https://github.com/lazyants/hetzner-mcp-server",
     "source": "github"
@@ -10,9 +10,7 @@
   "icon": {
     "src": "https://raw.githubusercontent.com/lazyants/hetzner-mcp-server/main/logo.png",
     "mimeType": "image/png",
-    "sizes": [
-      "400x400"
-    ]
+    "sizes": ["400x400"]
   },
   "packages": [
     {
