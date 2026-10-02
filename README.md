@@ -4,7 +4,7 @@
 
 MCP server for the [Hetzner Cloud API](https://docs.hetzner.cloud/). Manage servers, networks, volumes, firewalls, load balancers, and more through the Model Context Protocol.
 
-**185 tools** across 15 resource domains, with 9 entry points so you can pick the right server for your MCP client's tool limit. A read-only API-reference Resource (`reference://hetzner/api`) is also exposed on every entry point.
+**183 tools** across 15 resource domains, with 9 entry points so you can pick the right server for your MCP client's tool limit. A read-only API-reference Resource (`reference://hetzner/api`) is also exposed on every entry point.
 
 ## Installation
 
@@ -38,8 +38,8 @@ export HETZNER_STORAGE_API_TOKEN=your-storage-token-here  # optional
 
 | Command | Domains | Tools |
 |---|---|---|
-| `hetzner-mcp-server` | All 15 domains | 185 |
-| `hetzner-mcp-servers` | Servers, Datacenters/Locations/Server Types, Pricing | 34 |
+| `hetzner-mcp-server` | All 15 domains | 183 |
+| `hetzner-mcp-servers` | Servers, Locations/Server Types, Pricing | 32 |
 | `hetzner-mcp-networking` | Networks, Firewalls | 21 |
 | `hetzner-mcp-load-balancers` | Load Balancers, Certificates | 28 |
 | `hetzner-mcp-ips` | Floating IPs, Primary IPs | 20 |
@@ -123,11 +123,11 @@ Add to `claude_desktop_config.json`:
 
 `hetzner_list_placement_groups`, `hetzner_get_placement_group`, `hetzner_create_placement_group`, `hetzner_update_placement_group`, `hetzner_delete_placement_group`
 
-### Reference Data (7 tools) — servers
+### Reference Data (5 tools) — servers
 
-`hetzner_list_datacenters`, `hetzner_get_datacenter`, `hetzner_list_locations`, `hetzner_get_location`, `hetzner_list_server_types`, `hetzner_get_server_type`, `hetzner_get_pricing`
+`hetzner_list_locations`, `hetzner_get_location`, `hetzner_list_server_types`, `hetzner_get_server_type`, `hetzner_get_pricing`
 
-> `hetzner_list_datacenters` / `hetzner_get_datacenter` are deprecated by Hetzner and removed after 2026-10-01 (HTTP 410). Use `hetzner_list_server_types` (`locations[].available/recommended`) and `hetzner_list_locations` instead.
+Hetzner removed the `/datacenters` endpoints after 2026-10-01 (HTTP 410), and this server no longer exposes `hetzner_list_datacenters` or `hetzner_get_datacenter`. Use `hetzner_list_server_types` (`locations[].available/recommended`) and `hetzner_list_locations` for availability and region information.
 
 ### Networks (12 tools) — networking
 

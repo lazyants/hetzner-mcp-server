@@ -3,7 +3,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
 /**
  * Path + method + body/params shape for every Storage Box tool (core,
- * snapshots, subaccounts). Mirrors datacenters.test.ts / change-protection.test.ts:
+ * snapshots, subaccounts). Mirrors reference-data.test.ts / change-protection.test.ts:
  * mock axios.create, register the tools, invoke the handler, assert the captured
  * request args. Storage Box calls go to the storageBoxRequest client; the captured
  * url is relative to its api.hetzner.com base (base-URL routing is covered in

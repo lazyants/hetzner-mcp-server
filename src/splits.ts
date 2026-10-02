@@ -3,7 +3,7 @@ import { registerServerTools } from './tools/servers.js';
 import { registerImageTools } from './tools/images.js';
 import { registerIsoTools } from './tools/isos.js';
 import { registerPlacementGroupTools } from './tools/placement-groups.js';
-import { registerDatacenterTools } from './tools/datacenters.js';
+import { registerReferenceDataTools } from './tools/reference-data.js';
 import { registerNetworkTools } from './tools/networks.js';
 import { registerFirewallTools } from './tools/firewalls.js';
 import { registerLoadBalancerTools } from './tools/load-balancers.js';
@@ -31,8 +31,8 @@ export interface Split {
 export const SPLITS: Record<string, Split> = {
   servers: {
     bin: 'hetzner-mcp-servers',
-    registrars: [registerServerTools, registerDatacenterTools, registerPricingTools],
-    toolCount: 34,
+    registrars: [registerServerTools, registerReferenceDataTools, registerPricingTools],
+    toolCount: 32,
   },
   networking: {
     bin: 'hetzner-mcp-networking',

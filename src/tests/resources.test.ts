@@ -82,6 +82,11 @@ describe('API-reference Resource — content and shape (in-process round-trip)',
     const text = entry.text ?? '';
     expect(text.length).toBeGreaterThan(0);
     expect(text).toContain('# Hetzner Cloud API Reference');
+    expect(text).not.toContain('| Datacenters |');
+    expect(text).toContain('no longer exposes datacenter tools');
+    expect(text).toContain('`hetzner_list_locations`');
+    expect(text).toContain('`hetzner_list_server_types`');
+    expect(text).toContain('locations[].available/recommended');
   });
 
   it('still advertises tools (resources capability is additive)', async () => {
