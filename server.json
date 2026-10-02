@@ -17,6 +17,20 @@
       "registryType": "npm",
       "identifier": "@lazyants/hetzner-mcp-server",
       "version": "2.5.0",
+      "environmentVariables": [
+        {
+          "name": "HETZNER_API_TOKEN",
+          "description": "Hetzner Cloud API token.",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "HETZNER_STORAGE_API_TOKEN",
+          "description": "Storage Box API token; falls back to HETZNER_API_TOKEN when omitted.",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ],
       "transport": {
         "type": "stdio"
       }

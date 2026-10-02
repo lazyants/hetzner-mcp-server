@@ -110,6 +110,9 @@ describe('API-reference Resource — packaging from a clean build', () => {
     const packed = JSON.parse(out) as Array<{ files: Array<{ path: string }> }>;
     const files = packed[0].files.map((f) => f.path.replace(/\\/g, '/'));
 
+    expect(files.some((f) => f.startsWith('dist/tests/') || f.endsWith('.test.js'))).toBe(false);
+    expect(files.some((f) => f.endsWith('.map'))).toBe(false);
+
     // (i) the compiled Resource ships
     expect(files).toContain('dist/resources/hetzner-reference.js');
 
