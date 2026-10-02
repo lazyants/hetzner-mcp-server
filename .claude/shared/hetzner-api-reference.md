@@ -85,6 +85,10 @@ Default: 25 per page. Maximum: 50 per page.
 - **CRUD pattern**: GET (list/get), POST (create), PUT (update), DELETE (delete)
 - **Sub-resource actions**: POST to `/resource/{id}/actions/{action_name}`
 
+## Network members
+
+`GET /networks/{id}/members` lists attached resources as `members`, with pagination metadata. Each member includes `type` (`server` or `load_balancer`), `id`, `ip`, `alias_ips`, `subnet`, and `status` (`ok`, `attaching`, `detaching`, `updating`, or `error`). The `type`, `subnet`, `status`, and `sort` query parameters accept repeated keys; sorting supports `id`, `type`, `status`, and `ip`. The `hetzner_list_network_members` tool accepts strings or arrays for these parameters and standard `page`/`per_page` pagination.
+
 ## Per-resource action history
 
 Hetzner deprecated the global `/actions` endpoint in January 2025. Each resource exposes its own action history at `GET /<resource>/{id}/actions`. Supported on: `servers`, `load_balancers`, `volumes`, `networks`, `firewalls`, `floating_ips`, `primary_ips`, `certificates`, `images`, `zones` (DNS zones — `hetzner_list_zone_actions`).
