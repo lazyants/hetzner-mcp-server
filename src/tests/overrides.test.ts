@@ -69,7 +69,7 @@ interface Pin {
 
 const PINS: Pin[] = [
   { name: 'qs', floor: '6.16.0', advisory: 'GHSA-q8mj-m7cp-5q26 DoS, extended through 6.15.3 by GHSA-x5fp-wj9c-mxmx and GHSA-4mjr-xmp4-gh2g (checked 2026-09-07)' },
-  { name: 'hono', floor: '4.13.7', advisory: 'GHSA-hxh3-vqpv-xpqv XSS et al. (checked 2026-10-02)' },
+  { name: 'hono', floor: '4.13.11', advisory: 'GHSA-5r4p-p66f-jhc7 static-path middleware bypass and GHSA-hxh3-vqpv-xpqv XSS et al. (checked 2026-10-02)' },
   // Stay on 3.x — ajv declares `fast-uri: ^3.0.1`, so the 4.x branch is out of reach.
   { name: 'fast-uri', floor: '3.1.8', advisory: 'GHSA-hrr3-gc8f-f4qj host normalization (checked 2026-10-02)' },
   // Dev-only (eslint -> minimatch), so it never reaches the `--omit=dev` gate,
