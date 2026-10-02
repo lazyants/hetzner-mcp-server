@@ -9,7 +9,8 @@ const TOKEN = 'sk-leaky-bearer-DO-NOT-LEAK-9f3a';
 
 // Build a config object seeded with the token in every credential-bearing field:
 // headers (Authorization) + basic-auth `auth` + `proxy.auth` + the outgoing request
-// body `data` (certificate private_key / Storage Box password). `upper` swaps the
+// body `data` (certificate private_key / Storage Box password), plus query
+// `params` and the URL query string. `upper` swaps the
 // header to a plain-object `AUTHORIZATION` key (non-AxiosHeaders) to exercise the
 // case-insensitive scrub.
 function makeConfig(upper: boolean): AxiosError['config'] {
@@ -21,6 +22,8 @@ function makeConfig(upper: boolean): AxiosError['config'] {
     auth: { username: 'u', password: TOKEN },
     proxy: { host: 'proxy', port: 8080, auth: { username: 'p', password: TOKEN } },
     data: { private_key: TOKEN, password: TOKEN },
+    params: { label_selector: TOKEN, name: TOKEN },
+    url: `/servers?label_selector=${TOKEN}&name=${TOKEN}`,
   } as unknown as AxiosError['config'];
 }
 
@@ -144,6 +147,29 @@ describe('wrapHetznerError token redaction', () => {
     });
     const wrapped = wrapHetznerError(err);
     expect(util.inspect(wrapped, { depth: null })).not.toContain(TOKEN);
+  });
+
+  it('scrubs filter params and URL queries on request and response configs (#47)', () => {
+    const err = makeAxiosError({
+      withResponse: {
+        status: 500,
+        statusText: 'Internal Server Error',
+        data: { error: { code: 'service_error', message: 'boom' } },
+      },
+    });
+    const wrapped = wrapHetznerError(err);
+    for (const config of [err.config, err.response!.config]) {
+      expect(config).not.toHaveProperty('params');
+      expect(config!.url).toBe('/servers');
+    }
+    expectNoLeak(wrapped);
+  });
+
+  it('preserves URLs without query strings when scrubbing configs', () => {
+    const err = makeAxiosError({});
+    err.config!.url = '/servers/123';
+    wrapHetznerError(err);
+    expect(err.config!.url).toBe('/servers/123');
   });
 });
 
