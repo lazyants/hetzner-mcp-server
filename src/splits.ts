@@ -37,7 +37,7 @@ export const SPLITS: Record<string, Split> = {
   networking: {
     bin: 'hetzner-mcp-networking',
     registrars: [registerNetworkTools, registerFirewallTools],
-    toolCount: 21,
+    toolCount: 22,
   },
   'load-balancers': {
     bin: 'hetzner-mcp-load-balancers',

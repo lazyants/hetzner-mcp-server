@@ -4,7 +4,7 @@
 
 MCP server for the [Hetzner Cloud API](https://docs.hetzner.cloud/). Manage servers, networks, volumes, firewalls, load balancers, and more through the Model Context Protocol.
 
-**183 tools** across 15 resource domains, with 9 entry points so you can pick the right server for your MCP client's tool limit. A read-only API-reference Resource (`reference://hetzner/api`) is also exposed on every entry point.
+**184 tools** across 15 resource domains, with 9 entry points so you can pick the right server for your MCP client's tool limit. A read-only API-reference Resource (`reference://hetzner/api`) is also exposed on every entry point.
 
 ## Installation
 
@@ -38,9 +38,9 @@ export HETZNER_STORAGE_API_TOKEN=your-storage-token-here  # optional
 
 | Command | Domains | Tools |
 |---|---|---|
-| `hetzner-mcp-server` | All 15 domains | 183 |
+| `hetzner-mcp-server` | All 15 domains | 184 |
 | `hetzner-mcp-servers` | Servers, Locations/Server Types, Pricing | 32 |
-| `hetzner-mcp-networking` | Networks, Firewalls | 21 |
+| `hetzner-mcp-networking` | Networks, Firewalls | 22 |
 | `hetzner-mcp-load-balancers` | Load Balancers, Certificates | 28 |
 | `hetzner-mcp-ips` | Floating IPs, Primary IPs | 20 |
 | `hetzner-mcp-storage` | Volumes, Images | 17 |
@@ -129,9 +129,11 @@ Add to `claude_desktop_config.json`:
 
 Hetzner removed the `/datacenters` endpoints after 2026-10-01 (HTTP 410), and this server no longer exposes `hetzner_list_datacenters` or `hetzner_get_datacenter`. Use `hetzner_list_server_types` (`locations[].available/recommended`) and `hetzner_list_locations` for availability and region information.
 
-### Networks (12 tools) — networking
+### Networks (13 tools) — networking
 
-`hetzner_list_networks`, `hetzner_get_network`, `hetzner_create_network`, `hetzner_update_network`, `hetzner_delete_network`, `hetzner_add_subnet`, `hetzner_delete_subnet`, `hetzner_add_route`, `hetzner_delete_route`, `hetzner_change_network_protection`, `hetzner_change_ip_range`, `hetzner_list_network_actions`
+`hetzner_list_networks`, `hetzner_list_network_members`, `hetzner_get_network`, `hetzner_create_network`, `hetzner_update_network`, `hetzner_delete_network`, `hetzner_add_subnet`, `hetzner_delete_subnet`, `hetzner_add_route`, `hetzner_delete_route`, `hetzner_change_network_protection`, `hetzner_change_ip_range`, `hetzner_list_network_actions`
+
+`hetzner_list_network_members` returns attached servers and load balancers with IPs, aliases, subnet, and attachment status. Pass a string or array for `type`, `subnet`, `status`, and `sort`; arrays produce repeated query keys. Results include the API's pagination metadata.
 
 ### Firewalls (9 tools) — networking
 
