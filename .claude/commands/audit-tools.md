@@ -71,7 +71,7 @@ grep -oP "description: '[^']*'" src/tools/*.ts | awk -F"'" '{n=split($2,a," "); 
 
 ### 7. All handlers go through `handleToolRequest()`
 `toolError()` and `formatResponse()` are called *by* `handleToolRequest()`; no tool file calls
-`toolError` itself, so counting it reports zero for all 185 tools. Check the wrapper instead — every
+`toolError` itself, so counting it reports zero for every tool. Check the wrapper instead — every
 `registerTool` should have a matching `handleToolRequest` **call site**.
 
 Count call sites only. Every module that uses the wrapper also *imports* it, so a naive

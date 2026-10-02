@@ -62,7 +62,6 @@ Default: 25 per page. Maximum: 50 per page.
 | Images | `/images` | `/servers/{id}/actions/create_image` |
 | ISOs | `/isos` | `/servers/{id}/actions/attach_iso` |
 | Placement Groups | `/placement_groups` | — |
-| Datacenters | `/datacenters` | — |
 | Locations | `/locations` | — |
 | Server Types | `/server_types` | — |
 | Networks | `/networks` | `/networks/{id}/actions/{action}` |
@@ -76,6 +75,12 @@ Default: 25 per page. Maximum: 50 per page.
 | SSH Keys | `/ssh_keys` | — |
 | DNS Zones | `/zones` | `/zones/{id_or_name}/actions/{action}` |
 | Zone RRSets | `/zones/{id_or_name}/rrsets` | `/zones/{id_or_name}/rrsets/{name}/{type}/actions/{action}` |
+
+## Locations and server availability
+
+Hetzner removed `/datacenters` and `/datacenters/{id}` after **2026-10-01** (HTTP 410).
+The server no longer exposes datacenter tools. Use `hetzner_list_locations` for regions and
+`hetzner_list_server_types` (`locations[].available/recommended`) for per-location availability.
 
 ## Common Conventions
 
@@ -165,4 +170,3 @@ and the same retry/429/error-normalization. Error body is the same
 - `location` and `storage_box_type` are ID-or-Name **body** fields, not path segments;
   all path segments are numeric `IdSchema`, so no `pathSeg` needed there (but `pathSeg`
   is exported from `schemas/common.ts` for any future string-keyed segment).
-- Deprecated `/datacenters` tools are removed after **2026-10-01** (HTTP 410) — see GH issue #43.
