@@ -44,7 +44,7 @@ export const LabelSelectorParam = {
 export const LabelsSchema = z.record(z.string(), z.string()).optional().describe('Labels as key-value pairs');
 
 export const SortParam = {
-  sort: z.string().optional().describe('Sort field, e.g. "id:asc" or "name:desc"'),
+  sort: z.union([z.string(), z.array(z.string())]).optional().describe('Sort field, e.g. "id:asc" or "name:desc"; pass an array for multiple sort fields'),
 };
 
 export const NameFilterParam = {
@@ -52,5 +52,5 @@ export const NameFilterParam = {
 };
 
 export const ActionStatusFilterParam = {
-  status: z.string().optional().describe('Filter by action status: comma-separated list of "running", "success", "error"'),
+  status: z.union([z.string(), z.array(z.string())]).optional().describe('Filter by action status: "running", "success", or "error"; pass an array for multiple statuses'),
 };

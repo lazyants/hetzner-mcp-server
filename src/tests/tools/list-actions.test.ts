@@ -39,6 +39,7 @@ async function loadFreshServer(): Promise<{ McpServerCls: typeof McpServer }> {
 
 interface RegisteredToolEntry {
   handler: (args: Record<string, unknown>) => Promise<unknown>;
+  inputSchema: { parse: (args: Record<string, unknown>) => Record<string, unknown> };
 }
 
 async function callTool(server: McpServer, name: string, args: Record<string, unknown>): Promise<unknown> {
@@ -49,6 +50,55 @@ async function callTool(server: McpServer, name: string, args: Record<string, un
 }
 
 describe('list_<resource>_actions tools — path, method, and query shape', () => {
+  it('all eleven action-list schemas accept arrays and preserve their order through the request path', async () => {
+    const { McpServerCls } = await loadFreshServer();
+    const { ALL_REGISTRARS } = await import('../../splits.js');
+    const server = new McpServerCls({ name: 't', version: '0.0.0' });
+    for (const register of ALL_REGISTRARS) register(server);
+    const registry = (server as unknown as { _registeredTools: Record<string, RegisteredToolEntry> })._registeredTools;
+    const tools = Object.entries(registry).filter(([name]) => /^hetzner_list_.+_actions$/.test(name));
+    expect(tools).toHaveLength(11);
+    for (const [name, entry] of tools) {
+      const id = name === 'hetzner_list_zone_actions' ? { id_or_name: 'example.com' } : { id: 42 };
+      const query = { sort: ['id:desc', 'command:asc'], status: ['success', 'error'], page: 2, per_page: 25 };
+      const args = entry.inputSchema.parse({ ...id, ...query });
+      await entry.handler(args);
+      expect(mockRequest, name).toHaveBeenLastCalledWith({
+        method: 'GET', url: expect.stringMatching(/^\/[a-z_]+\/(42|example\.com)\/actions$/),
+        data: undefined, params: query,
+      });
+      expect(entry.inputSchema.parse({ ...id, sort: 'id:asc', status: 'running' })).toEqual({ ...id, sort: 'id:asc', status: 'running' });
+    }
+  });
+
+  it('the HTTP client serializes sort and status as repeated keys without brackets or commas', async () => {
+    vi.resetModules();
+    vi.stubEnv('HETZNER_API_TOKEN', 'test-token');
+    let serializedUrl = '';
+    vi.doMock('axios', async (importOriginal) => {
+      const actual = await importOriginal<typeof import('axios')>();
+      return {
+        ...actual,
+        default: {
+          ...actual.default,
+          create: (options: Parameters<typeof actual.default.create>[0]) => actual.default.create({
+            ...options,
+            adapter: async (config) => {
+              serializedUrl = actual.default.getUri(config);
+              return { data: { actions: [] }, status: 200, statusText: 'OK', headers: {}, config };
+            },
+          }),
+        },
+      };
+    });
+    const { hetznerRequest } = await import('../../services/hetzner.js');
+    await hetznerRequest('GET', '/servers/42/actions', undefined, { sort: ['id:desc', 'command:asc'], status: ['success', 'error'] });
+    const url = new URL(serializedUrl);
+    expect(url.searchParams.getAll('sort')).toEqual(['id:desc', 'command:asc']);
+    expect(url.searchParams.getAll('status')).toEqual(['success', 'error']);
+    expect([...url.searchParams.keys()]).toEqual(['sort', 'sort', 'status', 'status']);
+  });
+
   beforeEach(() => {
     vi.resetModules();
   });
@@ -62,7 +112,7 @@ describe('list_<resource>_actions tools — path, method, and query shape', () =
     await callTool(server, 'hetzner_list_load_balancer_actions', {
       id: 7,
       sort: 'id:desc',
-      status: 'success,error',
+      status: ['success', 'error'],
       page: 1,
       per_page: 25,
     });
@@ -71,7 +121,7 @@ describe('list_<resource>_actions tools — path, method, and query shape', () =
       method: 'GET',
       url: '/load_balancers/7/actions',
       data: undefined,
-      params: { sort: 'id:desc', status: 'success,error', page: 1, per_page: 25 },
+      params: { sort: 'id:desc', status: ['success', 'error'], page: 1, per_page: 25 },
     });
   });
 
