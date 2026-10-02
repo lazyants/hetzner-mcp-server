@@ -19,6 +19,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const pkg = require('../../package.json') as {
   overrides?: Record<string, string>;
+  dependencies?: Record<string, string>;
 };
 const lock = require('../../package-lock.json') as {
   packages?: Record<string, { version?: string }>;
@@ -68,22 +69,16 @@ interface Pin {
 
 const PINS: Pin[] = [
   { name: 'qs', floor: '6.16.0', advisory: 'GHSA-q8mj-m7cp-5q26 DoS, extended through 6.15.3 by GHSA-x5fp-wj9c-mxmx and GHSA-4mjr-xmp4-gh2g (checked 2026-09-07)' },
-  // Advisory range currently reaches < 4.12.34 across four GHSAs.
-  { name: 'hono', floor: '4.12.34', advisory: 'GHSA-8j4g-w8fx-2239 et al. (checked 2026-08-20)' },
+  { name: 'hono', floor: '4.13.7', advisory: 'GHSA-hxh3-vqpv-xpqv XSS et al. (checked 2026-10-02)' },
   // Stay on 3.x — ajv declares `fast-uri: ^3.0.1`, so the 4.x branch is out of reach.
-  // GHSA-5jgf-p345-68v8, GHSA-f65p-4m7j-42xc, GHSA-fph4-wmhf-6fwf and
-  // GHSA-jqff-g426-hqxp extended the range through 3.1.5, so 3.1.6 is the first
-  // unaffected release. The floor takes 3.1.7, the current top of the 3.x line:
-  // a floor above the minimum costs nothing and absorbs the next advisory that
-  // lands inside 3.1.6.
-  { name: 'fast-uri', floor: '3.1.7', advisory: 'GHSA-7p8r-x3mc-p8w7 host confusion et al. (checked 2026-09-07)' },
+  { name: 'fast-uri', floor: '3.1.8', advisory: 'GHSA-hrr3-gc8f-f4qj host normalization (checked 2026-10-02)' },
   // Dev-only (eslint -> minimatch), so it never reaches the `--omit=dev` gate,
   // but it rots the same way and is guarded here so the rot is visible.
   { name: 'brace-expansion', floor: '5.0.9', advisory: 'GHSA-rgw5-rvv9-x895 DoS (checked 2026-08-20)' },
   // Previously unpinned. An `overrides` entry is the only thing that pulls a
   // sticky lockfile forward on install, which is how an unpinned transitive dep
   // drifts INTO a range while pinned ones re-resolve themselves.
-  { name: 'ip-address', floor: '10.3.1', advisory: 'GHSA-mwp4-54f8-5fhr SSRF bypass (checked 2026-08-20)' },
+  { name: 'ip-address', floor: '10.7.1', advisory: 'GHSA-j6r3-76f7-8jcv mixed-family subnet comparison and GHSA-h3mg-xc3c-68pw DoS (checked 2026-10-02)' },
   { name: 'body-parser', floor: '2.3.0', advisory: 'GHSA-v422-hmwv-36x6 DoS via invalid limit (checked 2026-08-20)' },
   { name: 'form-data', floor: '4.0.6', advisory: 'GHSA-hmw2-7cc7-3qxx CRLF injection (checked 2026-08-20)' },
 ];
@@ -115,6 +110,22 @@ describe('security overrides (npm-audit gate regression guard)', () => {
       });
     });
   }
+});
+
+describe('axios security floor (checked 2026-10-02)', () => {
+  const floor = '1.20.0'; // GHSA-vh66-26gq-q6x8 and the other September 2026 axios advisories
+
+  it('declares the patched version floor in package.json', () => {
+    expect(pkg.dependencies?.axios).toBe(`^${floor}`);
+  });
+
+  it('resolves every axios lockfile entry to the patched version or later', () => {
+    const versions = resolvedVersions('axios');
+    expect(versions.length).toBeGreaterThan(0);
+    for (const version of versions) {
+      expect(gte(version, floor), `axios ${version} is below ${floor}`).toBe(true);
+    }
+  });
 });
 
 // Direct exercise of the comparator so the prerelease/build-metadata handling
