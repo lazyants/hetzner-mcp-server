@@ -55,6 +55,7 @@ export function registerLoadBalancerTools(server: McpServer): void {
       description: 'List all load balancers in the project, with optional filtering by name or labels.',
       inputSchema: z.object({
         ...NameFilterParam,
+        ...SortParam,
         ...LabelSelectorParam,
         ...PaginationParams,
       }),
@@ -313,6 +314,7 @@ export function registerLoadBalancerTools(server: McpServer): void {
         type: z.string().describe('Metric type, e.g. "open_connections", "connections_per_second", "requests_per_second", "bandwidth.in", "bandwidth.out"'),
         start: z.string().describe('Start of the time range in ISO 8601 format'),
         end: z.string().describe('End of the time range in ISO 8601 format'),
+        step: z.number().positive().optional().describe('Resolution of metric samples in seconds, e.g. 60'),
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },

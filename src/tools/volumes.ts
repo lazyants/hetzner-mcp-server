@@ -13,6 +13,7 @@ export function registerVolumeTools(server: McpServer): void {
       description: 'List all volumes in the project, with optional filtering by name, label, or status.',
       inputSchema: z.object({
         name: z.string().optional().describe('Filter by volume name'),
+        ...SortParam,
         ...LabelSelectorParam,
         status: z.enum(['creating', 'available']).optional().describe('Filter by volume status'),
         ...PaginationParams,

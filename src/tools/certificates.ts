@@ -12,6 +12,7 @@ export function registerCertificateTools(server: McpServer): void {
       description: 'List all SSL/TLS certificates in the project, with optional filtering.',
       inputSchema: z.object({
         ...NameFilterParam,
+        ...SortParam,
         ...LabelSelectorParam,
         type: z.enum(['uploaded', 'managed']).optional().describe('Filter by certificate type'),
         ...PaginationParams,

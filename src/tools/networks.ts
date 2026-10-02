@@ -12,6 +12,7 @@ export function registerNetworkTools(server: McpServer): void {
       description: 'List all networks in the project, with optional filtering by name or labels.',
       inputSchema: z.object({
         ...NameFilterParam,
+        ...SortParam,
         ...LabelSelectorParam,
         ...PaginationParams,
       }),
@@ -73,6 +74,7 @@ export function registerNetworkTools(server: McpServer): void {
           gateway: z.string().describe('Gateway for the route'),
         })).optional().describe('Array of routes to create'),
         labels: LabelsSchema,
+        expose_routes_to_vswitch: z.boolean().optional().describe('Whether to expose routes to the vSwitch'),
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
