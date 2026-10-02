@@ -100,9 +100,11 @@ Hetzner deprecated the global `/actions` endpoint in January 2025. Each resource
 
 Query parameters:
 
-- `sort` — e.g. `id:asc`, `command:desc`, `started:desc`, `finished:desc`, `status:asc`
-- `status` — comma-separated filter: `running`, `success`, `error`
+- `sort` — e.g. `id:asc`, `command:desc`, `started:desc`, `finished:desc`, `status:asc`; pass an array for multiple fields
+- `status` — `running`, `success`, `error`; pass an array for multiple statuses
 - `page`, `per_page` — standard pagination (max 50)
+
+`sort` and `status` use repeated query keys, e.g. `?sort=id:asc&sort=command:desc&status=success&status=error`. All action-list tools accept a single string or an array; use arrays rather than comma-joined strings for multiple values.
 
 Response shape: `{ "actions": [...], "meta": { "pagination": {...} } }`. Action history endpoints for individual action IDs (`GET /<resource>/{id}/actions/{action_id}`) were deprecated in Hetzner's April 2026 changelog — only the list endpoint is forward-compatible.
 

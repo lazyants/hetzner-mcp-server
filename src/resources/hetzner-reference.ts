@@ -94,6 +94,8 @@ export const REFERENCE_MD = [
   '`page`, `per_page`). Per-action-id GET endpoints are deprecated; only the list',
   'endpoint is forward-compatible. Supported on: servers, load_balancers, volumes,',
   'networks, firewalls, floating_ips, primary_ips, certificates, images, zones.',
+  'Pass an array for multiple sort fields or statuses; values are serialized as',
+  'repeated query keys, e.g. `status=success&status=error`.',
   '',
 ].join('\n');
 
