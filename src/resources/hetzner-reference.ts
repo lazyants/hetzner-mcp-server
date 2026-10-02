@@ -97,6 +97,17 @@ export const REFERENCE_MD = [
   'Pass an array for multiple sort fields or statuses; values are serialized as',
   'repeated query keys, e.g. `status=success&status=error`.',
   '',
+  '## Waiting for an action',
+  '',
+  '`hetzner_wait_for_action` is available on every entry point. Supply `domain`,',
+  '`resource_id`, and `action_id`; `timeout` is in seconds (default 300, max 3600).',
+  'It searches paginated per-resource action history until `success` or `error`,',
+  'returning the complete action. Missing or unknown statuses remain pending.',
+  'Supported domains: servers, load_balancers, volumes, networks, firewalls,',
+  'floating_ips, primary_ips, certificates, images, zones, storage_boxes.',
+  'The timeout includes pending requests and rate-limit delays; MCP cancellation',
+  'stops polling. Storage Boxes use their separate API host.',
+  '',
 ].join('\n');
 
 // Register the read-only API-reference Resource on a server instance. Called

@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosError, Method } from 'axios';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { HETZNER_API_BASE, HETZNER_STORAGE_API_BASE, MAX_RETRIES, REQUEST_TIMEOUT } from '../constants.js';
 
 interface HetznerErrorBody {
@@ -157,7 +158,12 @@ function createClient(baseURL: string, token: string): AxiosInstance {
         (config as unknown as Record<string, unknown>).__retryCount = retryCount + 1;
         console.error(`[hetzner-mcp] Rate limited. Retrying in ${delay}ms (attempt ${retryCount + 1}/${MAX_RETRIES})`);
 
-        await new Promise((resolve) => setTimeout(resolve, delay));
+        if (config.signal) {
+          await sleep(delay, undefined, { signal: config.signal as AbortSignal });
+        } else {
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+        (config.signal as AbortSignal | undefined)?.throwIfAborted();
         return client.request(config);
       }
 
@@ -274,17 +280,22 @@ async function request<T>(
   method: Method,
   path: string,
   data?: unknown,
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
+  signal?: AbortSignal
 ): Promise<T> {
   try {
+    signal?.throwIfAborted();
     const response = await client.request<T>({
       method,
       url: path,
       data,
       params: params ? stripUndefined(params) : undefined,
+      ...(signal ? { signal } : {}),
     });
+    signal?.throwIfAborted();
     return response.data;
   } catch (err) {
+    if (signal?.aborted) throw signal.reason;
     throw wrapHetznerError(err);
   }
 }
@@ -293,9 +304,10 @@ export async function hetznerRequest<T = unknown>(
   method: Method,
   path: string,
   data?: unknown,
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
+  signal?: AbortSignal
 ): Promise<T> {
-  return request<T>(getClient(), method, path, data, params);
+  return request<T>(getClient(), method, path, data, params, signal);
 }
 
 // Same retry / 429 backoff / error normalization as hetznerRequest, but routed
@@ -304,7 +316,8 @@ export async function storageBoxRequest<T = unknown>(
   method: Method,
   path: string,
   data?: unknown,
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
+  signal?: AbortSignal
 ): Promise<T> {
-  return request<T>(getStorageClient(), method, path, data, params);
+  return request<T>(getStorageClient(), method, path, data, params, signal);
 }

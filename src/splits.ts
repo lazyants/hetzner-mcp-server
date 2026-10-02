@@ -15,6 +15,7 @@ import { registerSshKeyTools } from './tools/ssh-keys.js';
 import { registerDnsZoneTools } from './tools/zones.js';
 import { registerPricingTools } from './tools/pricing.js';
 import { registerStorageBoxTools } from './tools/storage-boxes.js';
+import { registerActionTools } from './tools/actions.js';
 
 export type Registrar = (server: McpServer) => void;
 
@@ -28,7 +29,7 @@ export interface Split {
 // entry binaries + the full server. Each entry-*.ts and index.ts consume this
 // instead of hand-listing registrars, so the partition can never drift out of
 // sync between the runtime wiring and the tests that assert tool counts.
-export const SPLITS: Record<string, Split> = {
+const DOMAIN_SPLITS: Record<string, Split> = {
   servers: {
     bin: 'hetzner-mcp-servers',
     registrars: [registerServerTools, registerReferenceDataTools, registerPricingTools],
@@ -71,8 +72,19 @@ export const SPLITS: Record<string, Split> = {
   },
 };
 
-// Flattened union in a deterministic order (SPLITS insertion order) — used by
-// the full server (index.ts) and by tests that need to enumerate every tool.
-export const ALL_REGISTRARS: Registrar[] = Object.values(SPLITS).flatMap((s) => s.registrars);
+const SHARED_REGISTRARS: Registrar[] = [registerActionTools];
+const SHARED_TOOL_COUNT = 1;
 
-export const TOTAL_TOOL_COUNT: number = Object.values(SPLITS).reduce((n, s) => n + s.toolCount, 0);
+export const SPLITS: Record<string, Split> = Object.fromEntries(
+  Object.entries(DOMAIN_SPLITS).map(([name, split]) => [name, {
+    ...split,
+    registrars: [...split.registrars, ...SHARED_REGISTRARS],
+    toolCount: split.toolCount + SHARED_TOOL_COUNT,
+  }])
+);
+
+// Deduplicated union in a deterministic order (SPLITS insertion order) — used by
+// the full server (index.ts) and by tests that need to enumerate every tool.
+export const ALL_REGISTRARS: Registrar[] = [...new Set(Object.values(SPLITS).flatMap((s) => s.registrars))];
+
+export const TOTAL_TOOL_COUNT: number = Object.values(DOMAIN_SPLITS).reduce((n, s) => n + s.toolCount, 0) + SHARED_TOOL_COUNT;

@@ -23,11 +23,11 @@ export function formatResponse(data: unknown): CallToolResult {
 // GOTCHA: Must use `any` — Record<string,unknown> makes destructured props `unknown`,
 // breaking template literals like `/volumes/${id}`. Zod validates at runtime anyway.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function handleToolRequest(fn: (params: any) => Promise<unknown>) {
+export function handleToolRequest(fn: (params: any, extra?: { signal: AbortSignal }) => Promise<unknown>) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return async (params: any) => {
+  return async (params: any, extra?: { signal: AbortSignal }) => {
     try {
-      const data = await fn(params);
+      const data = await (extra ? fn(params, extra) : fn(params));
       return formatResponse(data);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);

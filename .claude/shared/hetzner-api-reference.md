@@ -108,6 +108,16 @@ Query parameters:
 
 Response shape: `{ "actions": [...], "meta": { "pagination": {...} } }`. Action history endpoints for individual action IDs (`GET /<resource>/{id}/actions/{action_id}`) were deprecated in Hetzner's April 2026 changelog — only the list endpoint is forward-compatible.
 
+### Waiting for an action
+
+`hetzner_wait_for_action` is shared by every entry point. Pass `domain`, numeric
+`resource_id`, `action_id`, and optional `timeout` in seconds (default 300, maximum 3600).
+It searches all history pages and polls until the action reaches `success` or `error`,
+then returns the full action; missing or unknown statuses keep waiting until timeout.
+The deadline includes API requests and 429 delays, and MCP cancellation stops the wait.
+Supported domains: servers, load_balancers, volumes, networks, firewalls, floating_ips,
+primary_ips, certificates, images, zones, and storage_boxes (on the separate Storage Box host).
+
 ## DNS Zones (GA November 2025)
 
 Zones use an `id_or_name` path segment — both the numeric ID and the FQDN ("example.com") resolve to the same resource. Tools accept either via the `IdOrNameSchema` union (`number | non-empty path-segment string`); handlers run path segments through `encodeURIComponent` before interpolating (defense-in-depth against reserved-char injection).
