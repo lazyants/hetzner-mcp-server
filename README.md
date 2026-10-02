@@ -107,6 +107,10 @@ Add to `claude_desktop_config.json`:
 
 ## Tools
 
+Primary list tools expose `sort` for servers, volumes, networks, firewalls, load balancers, IPs, certificates, SSH keys, and placement groups. Image listing also supports `bound_to` (one server ID or an array) and `include_deprecated`. Server and load-balancer metrics accept `step` in seconds; network creation accepts `expose_routes_to_vswitch`.
+
+Set `resource` on `hetzner_get_pricing` to `server_types`, `load_balancer_types`, `volume`, `floating_ips`, `primary_ips`, `traffic`, `image`, or `server_backup` to reduce the response. Filtered results preserve currency and VAT; `traffic` selects location-specific included traffic and additional traffic prices for server and load-balancer types.
+
 ### Servers (27 tools) — servers
 
 `hetzner_list_servers`, `hetzner_get_server`, `hetzner_create_server`, `hetzner_update_server`, `hetzner_delete_server`, `hetzner_power_on`, `hetzner_power_off`, `hetzner_reboot`, `hetzner_reset`, `hetzner_shutdown`, `hetzner_rebuild_server`, `hetzner_resize_server`, `hetzner_enable_rescue`, `hetzner_disable_rescue`, `hetzner_get_server_metrics`, `hetzner_list_server_actions`, `hetzner_change_server_protection`, `hetzner_request_console`, `hetzner_enable_backup`, `hetzner_disable_backup`, `hetzner_change_alias_ips`, `hetzner_change_dns_ptr`, `hetzner_attach_server_to_network`, `hetzner_detach_server_from_network`, `hetzner_add_server_to_placement_group`, `hetzner_remove_server_from_placement_group`, `hetzner_reset_server_password`
