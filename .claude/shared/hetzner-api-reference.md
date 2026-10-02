@@ -62,7 +62,6 @@ Default: 25 per page. Maximum: 50 per page.
 | Images | `/images` | `/servers/{id}/actions/create_image` |
 | ISOs | `/isos` | `/servers/{id}/actions/attach_iso` |
 | Placement Groups | `/placement_groups` | — |
-| Datacenters | `/datacenters` | — |
 | Locations | `/locations` | — |
 | Server Types | `/server_types` | — |
 | Networks | `/networks` | `/networks/{id}/actions/{action}` |
@@ -77,6 +76,12 @@ Default: 25 per page. Maximum: 50 per page.
 | DNS Zones | `/zones` | `/zones/{id_or_name}/actions/{action}` |
 | Zone RRSets | `/zones/{id_or_name}/rrsets` | `/zones/{id_or_name}/rrsets/{name}/{type}/actions/{action}` |
 
+## Locations and server availability
+
+Hetzner removed `/datacenters` and `/datacenters/{id}` after **2026-10-01** (HTTP 410).
+The server no longer exposes datacenter tools. Use `hetzner_list_locations` for regions and
+`hetzner_list_server_types` (`locations[].available/recommended`) for per-location availability.
+
 ## Common Conventions
 
 - **Labels**: `Record<string, string>` — filterable via `label_selector` query param (e.g., `env=prod,tier=web`)
@@ -85,17 +90,33 @@ Default: 25 per page. Maximum: 50 per page.
 - **CRUD pattern**: GET (list/get), POST (create), PUT (update), DELETE (delete)
 - **Sub-resource actions**: POST to `/resource/{id}/actions/{action_name}`
 
+## Network members
+
+`GET /networks/{id}/members` lists attached resources as `members`, with pagination metadata. Each member includes `type` (`server` or `load_balancer`), `id`, `ip`, `alias_ips`, `subnet`, and `status` (`ok`, `attaching`, `detaching`, `updating`, or `error`). The `type`, `subnet`, `status`, and `sort` query parameters accept repeated keys; sorting supports `id`, `type`, `status`, and `ip`. The `hetzner_list_network_members` tool accepts strings or arrays for these parameters and standard `page`/`per_page` pagination.
+
 ## Per-resource action history
 
 Hetzner deprecated the global `/actions` endpoint in January 2025. Each resource exposes its own action history at `GET /<resource>/{id}/actions`. Supported on: `servers`, `load_balancers`, `volumes`, `networks`, `firewalls`, `floating_ips`, `primary_ips`, `certificates`, `images`, `zones` (DNS zones — `hetzner_list_zone_actions`).
 
 Query parameters:
 
-- `sort` — e.g. `id:asc`, `command:desc`, `started:desc`, `finished:desc`, `status:asc`
-- `status` — comma-separated filter: `running`, `success`, `error`
+- `sort` — e.g. `id:asc`, `command:desc`, `started:desc`, `finished:desc`, `status:asc`; pass an array for multiple fields
+- `status` — `running`, `success`, `error`; pass an array for multiple statuses
 - `page`, `per_page` — standard pagination (max 50)
 
+`sort` and `status` use repeated query keys, e.g. `?sort=id:asc&sort=command:desc&status=success&status=error`. All action-list tools accept a single string or an array; use arrays rather than comma-joined strings for multiple values.
+
 Response shape: `{ "actions": [...], "meta": { "pagination": {...} } }`. Action history endpoints for individual action IDs (`GET /<resource>/{id}/actions/{action_id}`) were deprecated in Hetzner's April 2026 changelog — only the list endpoint is forward-compatible.
+
+### Waiting for an action
+
+`hetzner_wait_for_action` is shared by every entry point. Pass `domain`, numeric
+`resource_id`, `action_id`, and optional `timeout` in seconds (default 300, maximum 3600).
+It searches all history pages and polls until the action reaches `success` or `error`,
+then returns the full action; missing or unknown statuses keep waiting until timeout.
+The deadline includes API requests and 429 delays, and MCP cancellation stops the wait.
+Supported domains: servers, load_balancers, volumes, networks, firewalls, floating_ips,
+primary_ips, certificates, images, zones, and storage_boxes (on the separate Storage Box host).
 
 ## DNS Zones (GA November 2025)
 
@@ -165,4 +186,3 @@ and the same retry/429/error-normalization. Error body is the same
 - `location` and `storage_box_type` are ID-or-Name **body** fields, not path segments;
   all path segments are numeric `IdSchema`, so no `pathSeg` needed there (but `pathSeg`
   is exported from `schemas/common.ts` for any future string-keyed segment).
-- Deprecated `/datacenters` tools are removed after **2026-10-01** (HTTP 410) — see GH issue #43.

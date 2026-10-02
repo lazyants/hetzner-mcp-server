@@ -16,6 +16,8 @@ export function registerImageTools(server: McpServer): void {
         status: z.enum(['available', 'creating', 'unavailable']).optional().describe('Filter by image status'),
         architecture: z.enum(['x86', 'arm']).optional().describe('Filter by CPU architecture'),
         name: z.string().optional().describe('Filter by image name'),
+        bound_to: z.union([IdSchema, z.array(IdSchema)]).optional().describe('Filter backup images by linked server ID; pass an array for multiple servers'),
+        include_deprecated: z.boolean().optional().describe('Whether to include deprecated images'),
         ...LabelSelectorParam,
         ...SortParam,
         ...PaginationParams,

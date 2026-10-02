@@ -3,7 +3,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
 /**
  * Verifies path + method + params shape for the read-only reference-data tools
- * in `src/tools/datacenters.ts` (datacenters, locations, server types). All
+ * in `src/tools/reference-data.ts` (locations, server types). All
  * tools are GET-only — no CRUD, no protection, no action surfaces — so this
  * file is the complete coverage for the module.
  */
@@ -15,7 +15,7 @@ async function loadFreshServer(): Promise<{ McpServerCls: typeof McpServer }> {
   vi.unstubAllEnvs();
   vi.stubEnv('HETZNER_API_TOKEN', 'test-token');
 
-  mockRequest = vi.fn().mockResolvedValue({ data: { datacenter: { id: 1 } } });
+  mockRequest = vi.fn().mockResolvedValue({ data: { location: { id: 1 } } });
 
   vi.doMock('axios', async (importOriginal) => {
     const actual = await importOriginal<typeof import('axios')>();
@@ -48,41 +48,15 @@ async function callTool(server: McpServer, name: string, args: Record<string, un
 
 async function setupServer(): Promise<McpServer> {
   const { McpServerCls } = await loadFreshServer();
-  const { registerDatacenterTools } = await import('../../tools/datacenters.js');
+  const { registerReferenceDataTools } = await import('../../tools/reference-data.js');
   const server = new McpServerCls({ name: 't', version: '0.0.0' });
-  registerDatacenterTools(server);
+  registerReferenceDataTools(server);
   return server;
 }
 
-describe('Datacenters / Locations / Server Types tools — path, method, and params shape', () => {
+describe('Locations / Server Types tools — path, method, and params shape', () => {
   beforeEach(() => {
     vi.resetModules();
-  });
-
-  it('hetzner_list_datacenters: GET /datacenters with name + pagination', async () => {
-    const server = await setupServer();
-    await callTool(server, 'hetzner_list_datacenters', {
-      name: 'fsn1-dc14',
-      page: 1,
-      per_page: 25,
-    });
-    expect(mockRequest).toHaveBeenCalledWith({
-      method: 'GET',
-      url: '/datacenters',
-      data: undefined,
-      params: { name: 'fsn1-dc14', page: 1, per_page: 25 },
-    });
-  });
-
-  it('hetzner_get_datacenter: GET /datacenters/{id}', async () => {
-    const server = await setupServer();
-    await callTool(server, 'hetzner_get_datacenter', { id: 4 });
-    expect(mockRequest).toHaveBeenCalledWith({
-      method: 'GET',
-      url: '/datacenters/4',
-      data: undefined,
-      params: undefined,
-    });
   });
 
   it('hetzner_list_locations: GET /locations with name + pagination', async () => {
@@ -135,40 +109,5 @@ describe('Datacenters / Locations / Server Types tools — path, method, and par
       data: undefined,
       params: undefined,
     });
-  });
-});
-
-/**
- * Hetzner deprecated /datacenters on 2026-06-02; the endpoints return HTTP 410
- * after 2026-10-01. We deprecate the two tools in place (still functional until
- * then) and surface the removal date + replacement guidance in their
- * descriptions. This test makes the follow-up removal discoverable and locks the
- * deprecation notice so it cannot be silently dropped before the cutover.
- */
-interface ToolWithMeta {
-  description?: string;
-}
-
-function toolMeta(server: McpServer, name: string): ToolWithMeta {
-  const registry = (server as unknown as { _registeredTools: Record<string, ToolWithMeta> })._registeredTools;
-  const entry = registry[name];
-  if (!entry) throw new Error(`Tool not registered: ${name}`);
-  return entry;
-}
-
-describe('Datacenters deprecation notice (removed after 2026-10-01)', () => {
-  beforeEach(() => {
-    vi.resetModules();
-  });
-
-  it('list/get datacenter descriptions flag deprecation, the 2026-10-01 removal, and the replacements', async () => {
-    const server = await setupServer();
-    for (const name of ['hetzner_list_datacenters', 'hetzner_get_datacenter']) {
-      const desc = toolMeta(server, name).description ?? '';
-      expect(desc, name).toMatch(/deprecated/i);
-      expect(desc, name).toContain('2026-10-01');
-      expect(desc, name).toContain('hetzner_list_server_types');
-      expect(desc, name).toContain('hetzner_list_locations');
-    }
   });
 });

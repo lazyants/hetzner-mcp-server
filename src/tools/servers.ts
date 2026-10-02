@@ -13,6 +13,7 @@ export function registerServerTools(server: McpServer): void {
       description: 'List all servers in the project, with optional filtering by name, label, or status.',
       inputSchema: z.object({
         name: z.string().optional().describe('Filter by server name'),
+        ...SortParam,
         ...LabelSelectorParam,
         status: z.enum(['running', 'initializing', 'starting', 'stopping', 'off', 'deleting', 'migrating', 'rebuilding', 'unknown']).optional().describe('Filter by server status'),
         ...PaginationParams,
@@ -255,6 +256,7 @@ export function registerServerTools(server: McpServer): void {
         type: z.string().describe('Comma-separated metric types: "cpu", "disk", "network"'),
         start: z.string().describe('Start of period, ISO 8601 timestamp (e.g. "2025-01-01T00:00:00Z")'),
         end: z.string().describe('End of period, ISO 8601 timestamp (e.g. "2025-01-02T00:00:00Z")'),
+        step: z.number().positive().optional().describe('Resolution of metric samples in seconds, e.g. 60'),
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },

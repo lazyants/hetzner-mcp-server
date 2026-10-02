@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { hetznerRequest } from '../services/hetzner.js';
 import { handleToolRequest } from '../helpers.js';
-import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema } from '../schemas/common.js';
+import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema, SortParam } from '../schemas/common.js';
 
 export function registerSshKeyTools(server: McpServer): void {
   // List SSH keys
@@ -13,6 +13,7 @@ export function registerSshKeyTools(server: McpServer): void {
       description: 'List all SSH keys in the project, with optional filtering by name, label, or fingerprint.',
       inputSchema: z.object({
         name: z.string().optional().describe('Filter by SSH key name'),
+        ...SortParam,
         ...LabelSelectorParam,
         fingerprint: z.string().optional().describe('Filter by SSH key fingerprint'),
         ...PaginationParams,

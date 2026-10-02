@@ -13,6 +13,7 @@ export function registerPrimaryIpTools(server: McpServer): void {
       description: 'List all primary IPs in the project, with optional filtering by name, label, or IP address.',
       inputSchema: z.object({
         name: z.string().optional().describe('Filter by primary IP name'),
+        ...SortParam,
         ...LabelSelectorParam,
         ip: z.string().optional().describe('Filter by IP address'),
         ...PaginationParams,

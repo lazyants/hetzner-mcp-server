@@ -13,6 +13,7 @@ export function registerFloatingIpTools(server: McpServer): void {
       description: 'List all floating IPs in the project, with optional filtering by name or label.',
       inputSchema: z.object({
         name: z.string().optional().describe('Filter by floating IP name'),
+        ...SortParam,
         ...LabelSelectorParam,
         ...PaginationParams,
       }),

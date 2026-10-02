@@ -26,7 +26,7 @@ Before creating or modifying a tool:
    / `SPLITS` from it and import **no** tool registrar directly, so editing an entry file is both
    unnecessary and wrong. Add the registrar to the right `SPLITS` key and bump that split's
    `toolCount`:
-   - Servers, Reference Data (datacenters/locations/server-types), Pricing → `servers`
+   - Servers, Reference Data (locations/server-types), Pricing → `servers`
    - Networks, Firewalls → `networking`
    - Load Balancers, Certificates → `load-balancers`
    - Floating IPs, Primary IPs → `ips`

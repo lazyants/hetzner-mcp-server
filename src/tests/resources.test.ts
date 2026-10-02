@@ -82,6 +82,11 @@ describe('API-reference Resource — content and shape (in-process round-trip)',
     const text = entry.text ?? '';
     expect(text.length).toBeGreaterThan(0);
     expect(text).toContain('# Hetzner Cloud API Reference');
+    expect(text).not.toContain('| Datacenters |');
+    expect(text).toContain('no longer exposes datacenter tools');
+    expect(text).toContain('`hetzner_list_locations`');
+    expect(text).toContain('`hetzner_list_server_types`');
+    expect(text).toContain('locations[].available/recommended');
   });
 
   it('still advertises tools (resources capability is additive)', async () => {
@@ -109,6 +114,9 @@ describe('API-reference Resource — packaging from a clean build', () => {
     }).toString();
     const packed = JSON.parse(out) as Array<{ files: Array<{ path: string }> }>;
     const files = packed[0].files.map((f) => f.path.replace(/\\/g, '/'));
+
+    expect(files.some((f) => f.startsWith('dist/tests/') || f.endsWith('.test.js'))).toBe(false);
+    expect(files.some((f) => f.endsWith('.map'))).toBe(false);
 
     // (i) the compiled Resource ships
     expect(files).toContain('dist/resources/hetzner-reference.js');

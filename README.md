@@ -39,14 +39,16 @@ export HETZNER_STORAGE_API_TOKEN=your-storage-token-here  # optional
 | Command | Domains | Tools |
 |---|---|---|
 | `hetzner-mcp-server` | All 15 domains | 185 |
-| `hetzner-mcp-servers` | Servers, Datacenters/Locations/Server Types, Pricing | 34 |
-| `hetzner-mcp-networking` | Networks, Firewalls | 21 |
-| `hetzner-mcp-load-balancers` | Load Balancers, Certificates | 28 |
-| `hetzner-mcp-ips` | Floating IPs, Primary IPs | 20 |
-| `hetzner-mcp-storage` | Volumes, Images | 17 |
-| `hetzner-mcp-storage-boxes` | Storage Boxes (+ snapshots, subaccounts, types) | 29 |
-| `hetzner-mcp-config` | SSH Keys, ISOs, Placement Groups | 14 |
-| `hetzner-mcp-dns` | DNS Zones | 22 |
+| `hetzner-mcp-servers` | Servers, Locations/Server Types, Pricing | 33 |
+| `hetzner-mcp-networking` | Networks, Firewalls | 23 |
+| `hetzner-mcp-load-balancers` | Load Balancers, Certificates | 29 |
+| `hetzner-mcp-ips` | Floating IPs, Primary IPs | 21 |
+| `hetzner-mcp-storage` | Volumes, Images | 18 |
+| `hetzner-mcp-storage-boxes` | Storage Boxes (+ snapshots, subaccounts, types) | 30 |
+| `hetzner-mcp-config` | SSH Keys, ISOs, Placement Groups | 15 |
+| `hetzner-mcp-dns` | DNS Zones | 23 |
+
+Every entry point includes `hetzner_wait_for_action`; the full server registers it once.
 
 Use split servers to reduce context size — pick only the splits you need.
 
@@ -107,6 +109,14 @@ Add to `claude_desktop_config.json`:
 
 ## Tools
 
+Primary list tools expose `sort` for servers, volumes, networks, firewalls, load balancers, IPs, certificates, SSH keys, and placement groups. Image listing also supports `bound_to` (one server ID or an array) and `include_deprecated`. Server and load-balancer metrics accept `step` in seconds; network creation accepts `expose_routes_to_vswitch`.
+
+Set `resource` on `hetzner_get_pricing` to `server_types`, `load_balancer_types`, `volume`, `floating_ips`, `primary_ips`, `traffic`, `image`, or `server_backup` to reduce the response. Filtered results preserve currency and VAT; `traffic` selects location-specific included traffic and additional traffic prices for server and load-balancer types.
+
+### Action waiting (1 shared tool) — every entry point
+
+`hetzner_wait_for_action` accepts `domain`, `resource_id`, `action_id`, and an optional `timeout` in seconds (default 300, maximum 3600). It polls paginated per-resource action history and returns the full action when its status becomes `success` or `error`; missing or unknown statuses keep waiting until timeout. Supported domains are servers, load_balancers, volumes, networks, firewalls, floating_ips, primary_ips, certificates, images, zones, and storage_boxes; Storage Boxes use their separate API host. The deadline bounds requests and rate-limit delays, and MCP cancellation stops the wait.
+
 ### Servers (27 tools) — servers
 
 `hetzner_list_servers`, `hetzner_get_server`, `hetzner_create_server`, `hetzner_update_server`, `hetzner_delete_server`, `hetzner_power_on`, `hetzner_power_off`, `hetzner_reboot`, `hetzner_reset`, `hetzner_shutdown`, `hetzner_rebuild_server`, `hetzner_resize_server`, `hetzner_enable_rescue`, `hetzner_disable_rescue`, `hetzner_get_server_metrics`, `hetzner_list_server_actions`, `hetzner_change_server_protection`, `hetzner_request_console`, `hetzner_enable_backup`, `hetzner_disable_backup`, `hetzner_change_alias_ips`, `hetzner_change_dns_ptr`, `hetzner_attach_server_to_network`, `hetzner_detach_server_from_network`, `hetzner_add_server_to_placement_group`, `hetzner_remove_server_from_placement_group`, `hetzner_reset_server_password`
@@ -123,15 +133,17 @@ Add to `claude_desktop_config.json`:
 
 `hetzner_list_placement_groups`, `hetzner_get_placement_group`, `hetzner_create_placement_group`, `hetzner_update_placement_group`, `hetzner_delete_placement_group`
 
-### Reference Data (7 tools) — servers
+### Reference Data (5 tools) — servers
 
-`hetzner_list_datacenters`, `hetzner_get_datacenter`, `hetzner_list_locations`, `hetzner_get_location`, `hetzner_list_server_types`, `hetzner_get_server_type`, `hetzner_get_pricing`
+`hetzner_list_locations`, `hetzner_get_location`, `hetzner_list_server_types`, `hetzner_get_server_type`, `hetzner_get_pricing`
 
-> `hetzner_list_datacenters` / `hetzner_get_datacenter` are deprecated by Hetzner and removed after 2026-10-01 (HTTP 410). Use `hetzner_list_server_types` (`locations[].available/recommended`) and `hetzner_list_locations` instead.
+Hetzner removed the `/datacenters` endpoints after 2026-10-01 (HTTP 410), and this server no longer exposes `hetzner_list_datacenters` or `hetzner_get_datacenter`. Use `hetzner_list_server_types` (`locations[].available/recommended`) and `hetzner_list_locations` for availability and region information.
 
-### Networks (12 tools) — networking
+### Networks (13 tools) — networking
 
-`hetzner_list_networks`, `hetzner_get_network`, `hetzner_create_network`, `hetzner_update_network`, `hetzner_delete_network`, `hetzner_add_subnet`, `hetzner_delete_subnet`, `hetzner_add_route`, `hetzner_delete_route`, `hetzner_change_network_protection`, `hetzner_change_ip_range`, `hetzner_list_network_actions`
+`hetzner_list_networks`, `hetzner_list_network_members`, `hetzner_get_network`, `hetzner_create_network`, `hetzner_update_network`, `hetzner_delete_network`, `hetzner_add_subnet`, `hetzner_delete_subnet`, `hetzner_add_route`, `hetzner_delete_route`, `hetzner_change_network_protection`, `hetzner_change_ip_range`, `hetzner_list_network_actions`
+
+`hetzner_list_network_members` returns attached servers and load balancers with IPs, aliases, subnet, and attachment status. Pass a string or array for `type`, `subnet`, `status`, and `sort`; arrays produce repeated query keys. Results include the API's pagination metadata.
 
 ### Firewalls (9 tools) — networking
 

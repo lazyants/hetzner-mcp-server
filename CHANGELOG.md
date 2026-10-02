@@ -10,6 +10,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] — 2026-10-02
+
+### Removed
+
+- **Breaking:** Removed `hetzner_list_datacenters` and `hetzner_get_datacenter` after Hetzner discontinued the datacenter endpoints. Migrate to `hetzner_list_server_types` for availability and recommendations by location, and `hetzner_list_locations` for region information (#43).
+
+### Added
+
+- `hetzner_list_network_members` with pagination and repeated type, subnet, status and sort filters in the full and networking servers (#84).
+- `hetzner_wait_for_action` in every server entry point, with paginated action lookup, complete terminal action responses, bounded requests/retry delays and MCP cancellation (#56).
+- Primary resource-list sorting, metric step controls, backup-image filters, network vSwitch route exposure and optional pricing category/traffic selection (#56).
+
+### Changed
+
+- Action-list status and sort inputs accept arrays that serialize as repeated query keys, while retaining scalar inputs (#68).
+- Published builds exclude test modules and source maps, retain all nine executables and the API reference, and verify that the npm version is unpublished before publishing (#57).
+- MCP Registry metadata declares Cloud and optional Storage API tokens (#57).
+- Workflow actions use verified commit pins, and the MCP publisher version/checksum are updated together (#58).
+
+### Security
+
+- Axios error sanitization removes request filter parameters and URL queries from both request and response configurations (#47).
+- Updated production dependency floors and lockfile resolutions, including Hono's patched `4.13.11` floor.
+
 ## [2.5.0] — 2026-08-20
 
 ### Added
@@ -378,6 +402,7 @@ Total registered tools grew from 104 to 147 (+43): +22 DNS Zones
 - Rate-limit handling with exponential backoff (max 3 retries on 429).
 - GitHub Actions test and MCP Registry publish workflows.
 
+[3.0.0]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v3.0.0
 [2.5.0]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v2.5.0
 [2.4.0]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v2.4.0
 [2.3.0]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v2.3.0

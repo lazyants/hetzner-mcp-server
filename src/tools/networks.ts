@@ -12,12 +12,34 @@ export function registerNetworkTools(server: McpServer): void {
       description: 'List all networks in the project, with optional filtering by name or labels.',
       inputSchema: z.object({
         ...NameFilterParam,
+        ...SortParam,
         ...LabelSelectorParam,
         ...PaginationParams,
       }),
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
     handleToolRequest(async (params) => hetznerRequest('GET', '/networks', undefined, params))
+  );
+
+  server.registerTool(
+    'hetzner_list_network_members',
+    {
+      title: 'List Network Members',
+      description: 'List resources attached to a network, with their subnet, IP addresses, and attachment status. Filter by resource type, subnet, or status.',
+      inputSchema: z.object({
+        id: IdSchema.describe('Network ID'),
+        type: z.union([z.enum(['server', 'load_balancer']), z.array(z.enum(['server', 'load_balancer']))]).optional().describe('Resource type filter; pass an array for multiple types'),
+        subnet: z.union([z.string(), z.array(z.string())]).optional().describe('Subnet IP range in CIDR notation; pass an array for multiple subnets'),
+        status: z.union([z.enum(['ok', 'attaching', 'detaching', 'updating', 'error']), z.array(z.enum(['ok', 'attaching', 'detaching', 'updating', 'error']))]).optional().describe('Attachment status filter; pass an array for multiple statuses'),
+        sort: z.union([z.string(), z.array(z.string())]).optional().describe('Sort by id, type, status, or ip, e.g. "id:asc"; pass an array for multiple fields'),
+        ...PaginationParams,
+      }),
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    handleToolRequest(async (params) => {
+      const { id, ...queryParams } = params;
+      return hetznerRequest('GET', `/networks/${id}/members`, undefined, queryParams);
+    })
   );
 
   server.registerTool(
@@ -52,6 +74,7 @@ export function registerNetworkTools(server: McpServer): void {
           gateway: z.string().describe('Gateway for the route'),
         })).optional().describe('Array of routes to create'),
         labels: LabelsSchema,
+        expose_routes_to_vswitch: z.boolean().optional().describe('Whether to expose routes to the vSwitch'),
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },

@@ -4,43 +4,7 @@ import { hetznerRequest } from '../services/hetzner.js';
 import { handleToolRequest } from '../helpers.js';
 import { IdSchema, PaginationParams } from '../schemas/common.js';
 
-// Hetzner deprecated GET /datacenters and GET /datacenters/{id} on 2026-06-02;
-// they return HTTP 410 Gone after 2026-10-01. There is no drop-in replacement —
-// the availability data moved to hetzner_list_server_types
-// (locations[].available/recommended) and hetzner_list_locations. Remove these
-// two tools in a follow-up release once the endpoints start returning 410.
-const DATACENTERS_REMOVAL_DATE = '2026-10-01';
-
-export function registerDatacenterTools(server: McpServer): void {
-  // List datacenters
-  server.registerTool(
-    'hetzner_list_datacenters',
-    {
-      title: 'List Datacenters',
-      description: `Deprecated by Hetzner; /datacenters is removed after ${DATACENTERS_REMOVAL_DATE} (HTTP 410). Use hetzner_list_server_types (locations[].available/recommended) and hetzner_list_locations instead.`,
-      inputSchema: z.object({
-        name: z.string().optional().describe('Filter by datacenter name'),
-        ...PaginationParams,
-      }),
-      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
-    },
-    handleToolRequest(async (params) => hetznerRequest('GET', '/datacenters', undefined, params))
-  );
-
-  // Get datacenter
-  server.registerTool(
-    'hetzner_get_datacenter',
-    {
-      title: 'Get Datacenter',
-      description: `Deprecated by Hetzner; /datacenters is removed after ${DATACENTERS_REMOVAL_DATE} (HTTP 410). Use hetzner_list_server_types (locations[].available/recommended) and hetzner_list_locations instead.`,
-      inputSchema: z.object({
-        id: IdSchema.describe('Datacenter ID'),
-      }),
-      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
-    },
-    handleToolRequest(async (params) => hetznerRequest('GET', `/datacenters/${params.id}`))
-  );
-
+export function registerReferenceDataTools(server: McpServer): void {
   // List locations
   server.registerTool(
     'hetzner_list_locations',
@@ -75,7 +39,7 @@ export function registerDatacenterTools(server: McpServer): void {
     'hetzner_list_server_types',
     {
       title: 'List Server Types',
-      description: 'List all available server types with their specs and pricing.',
+      description: 'List server types with specs, pricing, and per-location availability and recommendations.',
       inputSchema: z.object({
         name: z.string().optional().describe('Filter by server type name'),
         ...PaginationParams,

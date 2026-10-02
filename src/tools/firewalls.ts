@@ -27,6 +27,7 @@ export function registerFirewallTools(server: McpServer): void {
       description: 'List all firewalls in the project, with optional filtering by name or labels.',
       inputSchema: z.object({
         ...NameFilterParam,
+        ...SortParam,
         ...LabelSelectorParam,
         ...PaginationParams,
       }),
