@@ -4,7 +4,7 @@
 
 MCP server for the [Hetzner Cloud API](https://docs.hetzner.cloud/). Manage servers, networks, volumes, firewalls, load balancers, and more through the Model Context Protocol.
 
-**185 tools** across 15 resource domains, with 9 entry points so you can pick the right server for your MCP client's tool limit. A read-only API-reference Resource (`reference://hetzner/api`) is also exposed on every entry point.
+**186 tools** across 15 resource domains, with 9 entry points so you can pick the right server for your MCP client's tool limit. A read-only API-reference Resource (`reference://hetzner/api`) is also exposed on every entry point.
 
 ## Installation
 
@@ -38,15 +38,17 @@ export HETZNER_STORAGE_API_TOKEN=your-storage-token-here  # optional
 
 | Command | Domains | Tools |
 |---|---|---|
-| `hetzner-mcp-server` | All 15 domains | 185 |
-| `hetzner-mcp-servers` | Servers, Datacenters/Locations/Server Types, Pricing | 34 |
-| `hetzner-mcp-networking` | Networks, Firewalls | 21 |
-| `hetzner-mcp-load-balancers` | Load Balancers, Certificates | 28 |
-| `hetzner-mcp-ips` | Floating IPs, Primary IPs | 20 |
-| `hetzner-mcp-storage` | Volumes, Images | 17 |
-| `hetzner-mcp-storage-boxes` | Storage Boxes (+ snapshots, subaccounts, types) | 29 |
-| `hetzner-mcp-config` | SSH Keys, ISOs, Placement Groups | 14 |
-| `hetzner-mcp-dns` | DNS Zones | 22 |
+| `hetzner-mcp-server` | All 15 domains | 186 |
+| `hetzner-mcp-servers` | Servers, Datacenters/Locations/Server Types, Pricing | 35 |
+| `hetzner-mcp-networking` | Networks, Firewalls | 22 |
+| `hetzner-mcp-load-balancers` | Load Balancers, Certificates | 29 |
+| `hetzner-mcp-ips` | Floating IPs, Primary IPs | 21 |
+| `hetzner-mcp-storage` | Volumes, Images | 18 |
+| `hetzner-mcp-storage-boxes` | Storage Boxes (+ snapshots, subaccounts, types) | 30 |
+| `hetzner-mcp-config` | SSH Keys, ISOs, Placement Groups | 15 |
+| `hetzner-mcp-dns` | DNS Zones | 23 |
+
+Every entry point includes `hetzner_wait_for_action`; the full server registers it once.
 
 Use split servers to reduce context size — pick only the splits you need.
 
@@ -106,6 +108,10 @@ Add to `claude_desktop_config.json`:
 ```
 
 ## Tools
+
+### Action waiting (1 shared tool) — every entry point
+
+`hetzner_wait_for_action` accepts `domain`, `resource_id`, `action_id`, and an optional `timeout` in seconds (default 300, maximum 3600). It polls paginated per-resource action history and returns the full action when its status becomes `success` or `error`; missing or unknown statuses keep waiting until timeout. Supported domains are servers, load_balancers, volumes, networks, firewalls, floating_ips, primary_ips, certificates, images, zones, and storage_boxes; Storage Boxes use their separate API host. The deadline bounds requests and rate-limit delays, and MCP cancellation stops the wait.
 
 ### Servers (27 tools) — servers
 
