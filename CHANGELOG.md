@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.1] — 2026-10-03
+
+### Changed
+
+- Refresh locked dependencies: MCP SDK 1.31.0, ESLint 10.11.0, globals 17.12.0 and typescript-eslint 8.71.0 (#94).
+
 ## [3.0.0] — 2026-10-02
 
 ### Removed
@@ -402,6 +408,7 @@ Total registered tools grew from 104 to 147 (+43): +22 DNS Zones
 - Rate-limit handling with exponential backoff (max 3 retries on 429).
 - GitHub Actions test and MCP Registry publish workflows.
 
+[3.0.1]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v3.0.1
 [3.0.0]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v3.0.0
 [2.5.0]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v2.5.0
 [2.4.0]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v2.4.0
