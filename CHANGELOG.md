@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Breaking:** Require Node.js 22.12 or newer and test on Node 22 and 24. Upgrade to Vitest 5 (#97).
+- **Breaking:** Require Node.js 22.12 or newer, select Node 24 for local development with `.nvmrc`, and test on Node 22 and 24. Upgrade to Vitest 5 (#97).
 - Use the TypeScript 7 compiler alongside the TypeScript 6 API compatibility package required by typescript-eslint (#79).
 - Update the MCP SDK to the patched 1.32.x line, ESLint, globals and typescript-eslint, and refresh compatible dependency resolutions (#99).
 - Pin actions/setup-node 7.1.0 by its verified commit in test and publishing workflows (#98).
