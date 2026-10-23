@@ -11,7 +11,7 @@ Use a read-only token for inspection; write operations can create billable resou
 For [Claude Code](https://code.claude.com/docs/en/mcp#option-3-add-a-local-stdio-server):
 
 ```bash
-claude mcp add --transport stdio --env HETZNER_API_TOKEN=your-token \
+claude mcp add --env HETZNER_API_TOKEN=your-token --transport stdio \
   hetzner -- npx -y @lazyants/hetzner-mcp-server
 ```
 
