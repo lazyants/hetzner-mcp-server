@@ -8,6 +8,9 @@ MCP server for the [Hetzner Cloud API](https://docs.hetzner.cloud/). Manage serv
 
 ## Installation
 
+Requires **Node.js 22.12 or newer**. Version 4 drops Node 20 support; update the Node runtime
+used by your MCP client before upgrading.
+
 ```bash
 npm install -g @lazyants/hetzner-mcp-server
 ```
@@ -108,6 +111,15 @@ Add to `claude_desktop_config.json`:
 ```
 
 ## Tools
+
+`hetzner_create_load_balancer` accepts `public_net.ipv4` and `public_net.ipv6` to select
+existing Primary IPs at creation. Omit a version or set it to `null` to use a system-managed
+address. Existing Primary IPs must be unassigned and in the same location, and require the
+public interface to be enabled. These assignments cannot be changed after creation.
+
+For new network subnets, use type `cloud` or `vswitch`. The `server` input remains a deprecated
+alias and is sent as `cloud` by both network creation and subnet addition. Existing subnet
+responses retain their original type; no existing subnet is recreated.
 
 Primary list tools expose `sort` for servers, volumes, networks, firewalls, load balancers, IPs, certificates, SSH keys, and placement groups. Image listing also supports `bound_to` (one server ID or an array) and `include_deprecated`. Server and load-balancer metrics accept `step` in seconds; network creation accepts `expose_routes_to_vswitch`.
 
