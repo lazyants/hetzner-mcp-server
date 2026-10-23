@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Extract only the pinned MCP publisher binary into a temporary directory so its upstream README and license cannot overwrite the Hetzner package's own files before npm publication. Verify both tracked files remain unchanged.
+- Ship this package's own README and license on npm again: the 4.0.0 package contained the MCP publisher's upstream README.md and LICENSE instead. The publish workflow now extracts only the pinned publisher binary into a temporary directory and fails if either tracked file changes.
 
 ## [4.0.0] — 2026-10-23
 
@@ -432,6 +432,8 @@ Total registered tools grew from 104 to 147 (+43): +22 DNS Zones
 - Rate-limit handling with exponential backoff (max 3 retries on 429).
 - GitHub Actions test and MCP Registry publish workflows.
 
+[4.0.1]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v4.0.1
+[4.0.0]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v4.0.0
 [3.0.1]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v3.0.1
 [3.0.0]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v3.0.0
 [2.5.0]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v2.5.0
