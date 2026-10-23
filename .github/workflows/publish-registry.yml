@@ -77,13 +77,16 @@ jobs:
           MCP_PUBLISHER_VERSION: v1.8.1
           MCP_PUBLISHER_SHA256: a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc
         run: |
-          curl -fsSL -o mcp-publisher.tar.gz \
+          publisher_dir="$(mktemp -d)"
+          trap 'rm -rf "$publisher_dir"' EXIT
+          curl -fsSL -o "$publisher_dir/mcp-publisher.tar.gz" \
             "https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz"
-          echo "${MCP_PUBLISHER_SHA256}  mcp-publisher.tar.gz" | sha256sum -c -
-          tar xzf mcp-publisher.tar.gz
-          sudo mv mcp-publisher /usr/local/bin/
-          rm mcp-publisher.tar.gz
+          echo "${MCP_PUBLISHER_SHA256}  $publisher_dir/mcp-publisher.tar.gz" | sha256sum -c -
+          # Upstream also ships README and LICENSE; keep them out of the package.
+          tar xzf "$publisher_dir/mcp-publisher.tar.gz" -C "$publisher_dir" mcp-publisher
+          sudo install -m 0755 "$publisher_dir/mcp-publisher" /usr/local/bin/mcp-publisher
           mcp-publisher --help >/dev/null
+          git diff --exit-code -- README.md LICENSE
 
       # Cutover/recovery guard: skip npm publish if the version is already
       # on npm (e.g. partial prior release where mcp-publisher failed after

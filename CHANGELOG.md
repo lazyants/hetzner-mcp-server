@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.1] — 2026-10-23
+
+### Fixed
+
+- Extract only the pinned MCP publisher binary into a temporary directory so its upstream README and license cannot overwrite the Hetzner package's own files before npm publication. Verify both tracked files remain unchanged.
+
 ## [4.0.0] — 2026-10-23
 
 ### Changed
