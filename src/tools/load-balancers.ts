@@ -95,6 +95,10 @@ export function registerLoadBalancerTools(server: McpServer): void {
         labels: LabelsSchema,
         network: z.number().int().optional().describe('Network ID to attach to'),
         public_interface: z.boolean().optional().describe('Enable the public interface'),
+        public_net: z.object({
+          ipv4: IdSchema.nullable().optional().describe('Existing IPv4 Primary IP ID; omit or set null for a system-managed IPv4 address'),
+          ipv6: IdSchema.nullable().optional().describe('Existing IPv6 Primary IP ID; omit or set null for a system-managed IPv6 address'),
+        }).optional().describe('Existing Primary IPs to assign at creation; assignments cannot be changed later'),
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },

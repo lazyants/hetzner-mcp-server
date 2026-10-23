@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { z } from 'zod';
 
 /**
  * Verifies path + method + body/params shape for CRUD + subnet + route tools
@@ -37,6 +38,7 @@ async function loadFreshServer(): Promise<{ McpServerCls: typeof McpServer }> {
 }
 
 interface RegisteredToolEntry {
+  inputSchema: z.ZodType<Record<string, unknown>>;
   handler: (args: Record<string, unknown>) => Promise<unknown>;
 }
 
@@ -44,7 +46,7 @@ async function callTool(server: McpServer, name: string, args: Record<string, un
   const registry = (server as unknown as { _registeredTools: Record<string, RegisteredToolEntry> })._registeredTools;
   const entry = registry[name];
   if (!entry) throw new Error(`Tool not registered: ${name}`);
-  return entry.handler(args);
+  return entry.handler(entry.inputSchema.parse(args));
 }
 
 async function setupServer(): Promise<McpServer> {
@@ -114,6 +116,52 @@ describe('Networks tools — path, method, and body/params shape', () => {
     });
   });
 
+  it('normalizes only the legacy type in mixed network creation subnets', async () => {
+    const server = await setupServer();
+    const args = {
+      name: 'private', ip_range: '10.0.0.0/8',
+      subnets: [
+        { type: 'server', ip_range: '10.0.1.0/24', network_zone: 'eu-central' },
+        { type: 'cloud', ip_range: '10.0.2.0/24', network_zone: 'eu-central' },
+        { type: 'vswitch', ip_range: '10.0.3.0/24', network_zone: 'eu-central', vswitch_id: 1234 },
+      ],
+    };
+    await callTool(server, 'hetzner_create_network', args);
+    expect(mockRequest).toHaveBeenCalledWith({
+      method: 'POST', url: '/networks', params: undefined,
+      data: {
+        ...args,
+        subnets: [
+          { type: 'cloud', ip_range: '10.0.1.0/24', network_zone: 'eu-central' },
+          { type: 'cloud', ip_range: '10.0.2.0/24', network_zone: 'eu-central' },
+          { type: 'vswitch', ip_range: '10.0.3.0/24', network_zone: 'eu-central', vswitch_id: 1234 },
+        ],
+      },
+    });
+    expect(args.subnets[0].type).toBe('server');
+  });
+
+  it('leaves network creation without subnets unchanged', async () => {
+    const server = await setupServer();
+    const args = { name: 'private', ip_range: '10.0.0.0/8' };
+    await callTool(server, 'hetzner_create_network', args);
+    expect(mockRequest).toHaveBeenCalledWith({
+      method: 'POST', url: '/networks', data: args, params: undefined,
+    });
+  });
+
+  it('preserves legacy subnet types in existing network responses', async () => {
+    const server = await setupServer();
+    const data = { network: { id: 4711, subnets: [{ type: 'server', ip_range: '10.0.1.0/24' }] } };
+    mockRequest.mockResolvedValueOnce({ data });
+    const result = await callTool(server, 'hetzner_get_network', { id: 4711 });
+    expect(result).toMatchObject({
+      structuredContent: { network: { id: 4711, subnets: [{ type: 'server', ip_range: '10.0.1.0/24' }] } },
+    });
+    expect(mockRequest).toHaveBeenCalledTimes(1);
+    expect(mockRequest.mock.calls[0][0].method).toBe('GET');
+  });
+
   it('hetzner_update_network: PUT /networks/{id} strips id from body', async () => {
     const server = await setupServer();
     await callTool(server, 'hetzner_update_network', {
@@ -153,6 +201,17 @@ describe('Networks tools — path, method, and body/params shape', () => {
       url: '/networks/4711/actions/add_subnet',
       data: { type: 'cloud', network_zone: 'eu-central', ip_range: '10.0.2.0/24' },
       params: undefined,
+    });
+  });
+
+  it('normalizes the legacy server alias when adding a subnet', async () => {
+    const server = await setupServer();
+    await callTool(server, 'hetzner_add_subnet', {
+      id: 4711, type: 'server', network_zone: 'eu-central', ip_range: '10.0.2.0/24',
+    });
+    expect(mockRequest).toHaveBeenCalledWith({
+      method: 'POST', url: '/networks/4711/actions/add_subnet', params: undefined,
+      data: { type: 'cloud', network_zone: 'eu-central', ip_range: '10.0.2.0/24' },
     });
   });
 
