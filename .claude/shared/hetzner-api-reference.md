@@ -90,6 +90,21 @@ The server no longer exposes datacenter tools. Use `hetzner_list_locations` for 
 - **CRUD pattern**: GET (list/get), POST (create), PUT (update), DELETE (delete)
 - **Sub-resource actions**: POST to `/resource/{id}/actions/{action_name}`
 
+## Load Balancer Primary IPs
+
+`POST /load_balancers` accepts optional `public_net.ipv4` and `public_net.ipv6` Primary IP IDs.
+Omit a version or set it to `null` for a system-managed address. Existing Primary IPs must be
+unassigned, unblocked and in the same location, and require the public interface to be enabled.
+Assignments can only be selected at creation and remain fixed for the Load Balancer's lifetime.
+The `hetzner_create_load_balancer` tool exposes these options.
+
+## Network subnet creation
+
+Use `cloud` or `vswitch` when creating new subnets. The `server` type is deprecated upstream
+and will be rejected for new subnets on 2027-04-15. Both `hetzner_create_network.subnets[]`
+and `hetzner_add_subnet` retain `server` as a caller alias but send `cloud` to the API.
+Existing subnet responses retain their original type; no existing subnet is recreated.
+
 ## Network members
 
 `GET /networks/{id}/members` lists attached resources as `members`, with pagination metadata. Each member includes `type` (`server` or `load_balancer`), `id`, `ip`, `alias_ips`, `subnet`, and `status` (`ok`, `attaching`, `detaching`, `updating`, or `error`). The `type`, `subnet`, `status`, and `sort` query parameters accept repeated keys; sorting supports `id`, `type`, `status`, and `ip`. The `hetzner_list_network_members` tool accepts strings or arrays for these parameters and standard `page`/`per_page` pagination.

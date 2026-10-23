@@ -5,7 +5,7 @@ write and review code here without another file. It is deliberately NOT the whol
 
 - **Validation and CI** are defined by `.github/workflows/test.yml` (the required sequence: `npm ci`,
   lint, `node scripts/check-versions.mjs`, `npm audit --audit-level=moderate --omit=dev`, build,
-  tests, on the Node 20 + 22 matrix). Read that file — it is versioned here and is the source of
+  tests, on the Node 22 + 24 matrix). Read that file — it is versioned here and is the source of
   truth, not a summary of it.
 - **Releasing** is in `README.md` § Releasing, including the guarded tagging sequence.
 - **Fleet-wide material** — the publishing playbook, the hygiene skill, the sibling servers — is in
@@ -26,7 +26,11 @@ write and review code here without another file. It is deliberately NOT the whol
 - **`CallToolResult` import path**: `@modelcontextprotocol/sdk/types.js`, NOT `server/mcp.js`.
 - **`server.json` dual `version` fields**: root `version` is the MCP Registry version (unique per
   publish); `packages[0].version` is the npm version (must exist on npm). They may differ.
-- **`@types/node` is capped at the `engines.node` floor** (Node 20). Reject Dependabot major bumps.
+- **`@types/node` is capped at the `engines.node` major floor** (Node 22; minimum runtime 22.12).
+  Reject Dependabot major bumps that exceed that floor.
+- **TypeScript 7 compiler, TypeScript 6 API**: `@typescript/native` aliases TypeScript 7 and owns
+  `tsc`; `typescript` aliases `@typescript/typescript6` for tools such as typescript-eslint that
+  still require the compiler API. Keep both dependencies until those tools support the new API.
 - **Git**: commit right after a change, present-tense imperative subject, never `git add -A`/`.`,
   no `Co-Authored-By` or "Generated with" trailers. Default branch `main`.
 - **This file does not restate CURRENT STRUCTURE that lives in code** — module inventories, tool or

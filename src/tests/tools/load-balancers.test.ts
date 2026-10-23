@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { z } from 'zod';
 
 /**
  * Verifies path + method + body/params shape for CRUD + module-specific action
@@ -36,6 +39,7 @@ async function loadFreshServer(): Promise<{ McpServerCls: typeof McpServer }> {
 }
 
 interface RegisteredToolEntry {
+  inputSchema: z.ZodType<Record<string, unknown>>;
   handler: (args: Record<string, unknown>) => Promise<unknown>;
 }
 
@@ -43,7 +47,7 @@ async function callTool(server: McpServer, name: string, args: Record<string, un
   const registry = (server as unknown as { _registeredTools: Record<string, RegisteredToolEntry> })._registeredTools;
   const entry = registry[name];
   if (!entry) throw new Error(`Tool not registered: ${name}`);
-  return entry.handler(args);
+  return entry.handler(entry.inputSchema.parse(args));
 }
 
 async function setupServer(): Promise<McpServer> {
@@ -133,6 +137,73 @@ describe('Load Balancers tools — path, method, and body/params shape', () => {
     });
   });
 
+  it.each([
+    { ipv4: 123 },
+    { ipv6: 456 },
+    { ipv4: 123, ipv6: 456 },
+    { ipv4: null, ipv6: null },
+    { ipv4: 123, ipv6: null },
+    {},
+  ])('preserves explicit Primary IP options %j in the creation request', async (public_net) => {
+    const server = await setupServer();
+    const args = { name: 'edge-lb', load_balancer_type: 'lb11', location: 'fsn1', public_net };
+    await callTool(server, 'hetzner_create_load_balancer', args);
+    expect(mockRequest).toHaveBeenCalledWith({
+      method: 'POST', url: '/load_balancers', data: args, params: undefined,
+    });
+  });
+
+  it.each(['ipv4', 'ipv6'])('rejects invalid %s Primary IP IDs before making a request', async (version) => {
+    const server = await setupServer();
+    for (const id of [0, -1, 1.5, '123', Number.MAX_SAFE_INTEGER + 1]) {
+      await expect(callTool(server, 'hetzner_create_load_balancer', {
+        name: 'edge-lb', load_balancer_type: 'lb11', public_net: { [version]: id },
+      })).rejects.toThrow();
+    }
+    expect(mockRequest).not.toHaveBeenCalled();
+  });
+
+  it('advertises independently optional Primary IP fields through MCP tools/list', async () => {
+    const server = await setupServer();
+    const client = new Client({ name: 'schema-test', version: '0.0.0' });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    try {
+      await Promise.all([client.connect(clientTransport), server.connect(serverTransport)]);
+      const { tools } = await client.listTools();
+      const tool = tools.find((entry) => entry.name === 'hetzner_create_load_balancer');
+      expect(tool?.inputSchema.required).not.toContain('public_net');
+      const publicNet = tool?.inputSchema.properties?.public_net as {
+        properties: Record<string, unknown>; required?: string[];
+      };
+      const nullableId = {
+        anyOf: expect.arrayContaining([expect.objectContaining({ type: 'integer', exclusiveMinimum: 0 }), { type: 'null' }]),
+      };
+      expect(publicNet.properties).toMatchObject({ ipv4: nullableId, ipv6: nullableId });
+      expect(publicNet.required ?? []).toEqual([]);
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
+
+  it.each([
+    [412, 'primary_ip_version_mismatch'],
+    [422, 'primary_ip_location_mismatch'],
+  ])('preserves upstream Primary IP failure %s/%s', async (status, code) => {
+    const server = await setupServer();
+    const { AxiosError } = await import('axios');
+    mockRequest.mockRejectedValueOnce(Object.assign(new AxiosError('Request failed'), {
+      response: { status, data: { error: { code, message: 'Primary IP is incompatible' } } },
+    }));
+    const result = await callTool(server, 'hetzner_create_load_balancer', {
+      name: 'edge-lb', load_balancer_type: 'lb11', public_net: { ipv4: 123 },
+    });
+    expect(result).toMatchObject({
+      isError: true,
+      content: [{ type: 'text', text: `Error: Hetzner API [${code}]: Primary IP is incompatible` }],
+    });
+  });
+
   it('hetzner_update_load_balancer: PUT /load_balancers/{id} strips id from body', async () => {
     const server = await setupServer();
     await callTool(server, 'hetzner_update_load_balancer', {
@@ -150,7 +221,10 @@ describe('Load Balancers tools — path, method, and body/params shape', () => {
 
   it('hetzner_delete_load_balancer: DELETE /load_balancers/{id}', async () => {
     const server = await setupServer();
-    await callTool(server, 'hetzner_delete_load_balancer', { id: 7 });
+    const data = { action: { id: 123, command: 'delete_load_balancer', status: 'running' } };
+    mockRequest.mockResolvedValueOnce({ data, status: 201 });
+    const result = await callTool(server, 'hetzner_delete_load_balancer', { id: 7 });
+    expect(result).toMatchObject({ structuredContent: data });
     expect(mockRequest).toHaveBeenCalledWith({
       method: 'DELETE',
       url: '/load_balancers/7',

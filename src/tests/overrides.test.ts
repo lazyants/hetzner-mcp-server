@@ -74,13 +74,15 @@ const PINS: Pin[] = [
   { name: 'fast-uri', floor: '3.1.8', advisory: 'GHSA-hrr3-gc8f-f4qj host normalization (checked 2026-10-02)' },
   // Dev-only (eslint -> minimatch), so it never reaches the `--omit=dev` gate,
   // but it rots the same way and is guarded here so the rot is visible.
-  { name: 'brace-expansion', floor: '5.0.9', advisory: 'GHSA-rgw5-rvv9-x895 DoS (checked 2026-08-20)' },
+  { name: 'brace-expansion', floor: '5.0.12', advisory: 'GHSA-q2hr-2g5m-vwhr quadratic expansion and related recursion DoS (checked 2026-10-23)' },
   // Previously unpinned. An `overrides` entry is the only thing that pulls a
   // sticky lockfile forward on install, which is how an unpinned transitive dep
   // drifts INTO a range while pinned ones re-resolve themselves.
-  { name: 'ip-address', floor: '10.7.1', advisory: 'GHSA-j6r3-76f7-8jcv mixed-family subnet comparison and GHSA-h3mg-xc3c-68pw DoS (checked 2026-10-02)' },
+  { name: 'ip-address', floor: '10.7.4', advisory: 'GHSA-rxp7-6hxx-x8q5 IPv6 zone identifier DoS (checked 2026-10-23)' },
   { name: 'body-parser', floor: '2.3.0', advisory: 'GHSA-v422-hmwv-36x6 DoS via invalid limit (checked 2026-08-20)' },
   { name: 'form-data', floor: '4.0.6', advisory: 'GHSA-hmw2-7cc7-3qxx CRLF injection (checked 2026-08-20)' },
+  { name: 'proxy-addr', floor: '2.0.8', advisory: 'GHSA-jqcg-44mw-7w3h IPv4-mapped IPv6 trust-subnet spoofing (checked 2026-10-23)' },
+  { name: 'follow-redirects', floor: '1.16.1', advisory: 'GHSA-q3jh-wrc6-jgq8 and GHSA-8r9p-f939-6h3c cross-origin credential stripping (checked 2026-10-23)' },
 ];
 
 describe('security overrides (npm-audit gate regression guard)', () => {

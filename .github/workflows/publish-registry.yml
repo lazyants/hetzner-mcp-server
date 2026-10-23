@@ -21,16 +21,16 @@ jobs:
       # GITHUB_TOKEN. npm publish tries to auth with that, fails, and
       # returns a misleading 404 — TP never fires.
       #
-      # Node 24 (Active LTS), NOT the package's own `engines.node` floor of 20.
+      # Node 24 (Active LTS), NOT the package's own `engines.node` floor of 22.12.
       # This job only publishes; it never runs the package. npm's Trusted
       # Publishing docs state a two-part prerequisite — npm 11.5.1+ AND
       # Node 22.14+ — and Node 20 satisfied only the npm half, leaving the
       # irreversible `npm publish` step one npm patch release away from
       # breaking if that floor ever starts being enforced.
       #
-      # The CI *test* matrix (Node 20 + 22) is deliberately separate: it
+      # The CI *test* matrix (Node 22 + 24) is deliberately separate: it
       # tracks `engines.node` and must not follow this pin.
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
 

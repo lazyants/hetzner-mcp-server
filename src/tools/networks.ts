@@ -4,6 +4,11 @@ import { hetznerRequest } from '../services/hetzner.js';
 import { handleToolRequest } from '../helpers.js';
 import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema, NameFilterParam, SortParam, ActionStatusFilterParam } from '../schemas/common.js';
 
+// Hetzner deprecated the `server` subnet type: keep accepting it from callers, but send `cloud`.
+function normalizeSubnet<T extends { type: string }>(subnet: T): T {
+  return { ...subnet, type: subnet.type === 'server' ? 'cloud' : subnet.type };
+}
+
 export function registerNetworkTools(server: McpServer): void {
   server.registerTool(
     'hetzner_list_networks',
@@ -64,7 +69,7 @@ export function registerNetworkTools(server: McpServer): void {
         name: z.string().describe('Name of the network'),
         ip_range: z.string().describe('IP range of the whole network, e.g. "10.0.0.0/8"'),
         subnets: z.array(z.object({
-          type: z.string().describe('Type of subnet: cloud, server, or vswitch'),
+          type: z.string().describe('Subnet type: cloud or vswitch; server is a deprecated alias normalized to cloud (upstream removal 2027-04-15)'),
           ip_range: z.string().describe('IP range of the subnet'),
           network_zone: z.string().describe('Name of the network zone, e.g. "eu-central"'),
           vswitch_id: z.number().int().optional().describe('ID of the vSwitch (for vswitch type)'),
@@ -78,7 +83,10 @@ export function registerNetworkTools(server: McpServer): void {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
-    handleToolRequest(async (params) => hetznerRequest('POST', '/networks', params))
+    handleToolRequest(async (params) => {
+      const body = params.subnets ? { ...params, subnets: params.subnets.map(normalizeSubnet) } : params;
+      return hetznerRequest('POST', '/networks', body);
+    })
   );
 
   server.registerTool(
@@ -120,7 +128,7 @@ export function registerNetworkTools(server: McpServer): void {
       description: 'Add a subnet to an existing network.',
       inputSchema: z.object({
         id: IdSchema,
-        type: z.enum(['cloud', 'server', 'vswitch']).describe('Type of subnet'),
+        type: z.enum(['cloud', 'server', 'vswitch']).describe('Subnet type: cloud or vswitch; server is a deprecated alias normalized to cloud (upstream removal 2027-04-15)'),
         network_zone: z.string().describe('Name of the network zone, e.g. "eu-central"'),
         ip_range: z.string().optional().describe('IP range of the subnet'),
         vswitch_id: z.number().int().optional().describe('ID of the vSwitch (required for vswitch type)'),
@@ -129,7 +137,7 @@ export function registerNetworkTools(server: McpServer): void {
     },
     handleToolRequest(async (params) => {
       const { id, ...body } = params;
-      return hetznerRequest('POST', `/networks/${id}/actions/add_subnet`, body);
+      return hetznerRequest('POST', `/networks/${id}/actions/add_subnet`, normalizeSubnet(body));
     })
   );
 

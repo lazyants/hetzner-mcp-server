@@ -10,6 +10,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.0] — 2026-10-23
+
+### Changed
+
+- **Breaking:** Require Node.js 22.12 or newer, select Node 24 for local development with `.nvmrc`, and test on Node 22 and 24. Upgrade to Vitest 5 (#97).
+- Use the TypeScript 7 compiler alongside the TypeScript 6 API compatibility package required by typescript-eslint (#79).
+- Update the MCP SDK to the patched 1.32.x line, ESLint, globals and typescript-eslint, and refresh compatible dependency resolutions (#99).
+- Pin actions/setup-node 7.1.0 by its verified commit in test and publishing workflows (#98).
+- Normalize the deprecated `server` subnet input alias to `cloud` when creating networks or adding subnets; preserve existing responses and vSwitch behavior (#101).
+
+### Added
+
+- Select existing IPv4 and IPv6 Primary IPs through `public_net` when creating a Load Balancer, with omission or null preserving system-managed addresses (#100).
+
+### Security
+
+- Raise guarded dependency floors for proxy-addr, follow-redirects, ip-address and brace-expansion to address current audit findings, including the critical proxy-addr trust-subnet spoofing advisory.
+
 ## [3.0.1] — 2026-10-03
 
 ### Changed
