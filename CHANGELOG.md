@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.3] — 2026-11-07
+
+### Security
+
+- Require zod 4.6.6 or newer, which fixes memory exhaustion when validating oversized constrained collections (GHSA-mrhx-c7xc-m3w5).
+- Raise guarded dependency floors for body-parser, follow-redirects, fast-uri, qs and `@hono/node-server` to address current audit findings.
+
+### Changed
+
+- Update the MCP SDK to 1.32.2, axios and typescript-eslint within their existing ranges (#105).
+
 ## [4.0.2] — 2026-10-23
 
 ### Changed
@@ -438,6 +449,7 @@ Total registered tools grew from 104 to 147 (+43): +22 DNS Zones
 - Rate-limit handling with exponential backoff (max 3 retries on 429).
 - GitHub Actions test and MCP Registry publish workflows.
 
+[4.0.3]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v4.0.3
 [4.0.2]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v4.0.2
 [4.0.1]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v4.0.1
 [4.0.0]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v4.0.0
