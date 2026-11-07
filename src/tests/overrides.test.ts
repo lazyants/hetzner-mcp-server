@@ -68,10 +68,10 @@ interface Pin {
 }
 
 const PINS: Pin[] = [
-  { name: 'qs', floor: '6.16.0', advisory: 'GHSA-q8mj-m7cp-5q26 DoS, extended through 6.15.3 by GHSA-x5fp-wj9c-mxmx and GHSA-4mjr-xmp4-gh2g (checked 2026-09-07)' },
+  { name: 'qs', floor: '6.16.1', advisory: 'GHSA-6pq8-jhm2-2vcw stringify comma-format DoS, after GHSA-q8mj-m7cp-5q26 and its extensions (checked 2026-11-07)' },
   { name: 'hono', floor: '4.13.11', advisory: 'GHSA-5r4p-p66f-jhc7 static-path middleware bypass and GHSA-hxh3-vqpv-xpqv XSS et al. (checked 2026-10-02)' },
   // Stay on 3.x — ajv declares `fast-uri: ^3.0.1`, so the 4.x branch is out of reach.
-  { name: 'fast-uri', floor: '3.1.8', advisory: 'GHSA-hrr3-gc8f-f4qj host normalization (checked 2026-10-02)' },
+  { name: 'fast-uri', floor: '3.1.9', advisory: 'GHSA-w74x-v6f9-j3xg scheme spoofing, GHSA-wjr9-j795-jxcr host confusion et al. (checked 2026-11-07)' },
   // Dev-only (eslint -> minimatch), so it never reaches the `--omit=dev` gate,
   // but it rots the same way and is guarded here so the rot is visible.
   { name: 'brace-expansion', floor: '5.0.12', advisory: 'GHSA-q2hr-2g5m-vwhr quadratic expansion and related recursion DoS (checked 2026-10-23)' },
@@ -79,10 +79,12 @@ const PINS: Pin[] = [
   // sticky lockfile forward on install, which is how an unpinned transitive dep
   // drifts INTO a range while pinned ones re-resolve themselves.
   { name: 'ip-address', floor: '10.7.4', advisory: 'GHSA-rxp7-6hxx-x8q5 IPv6 zone identifier DoS (checked 2026-10-23)' },
-  { name: 'body-parser', floor: '2.3.0', advisory: 'GHSA-v422-hmwv-36x6 DoS via invalid limit (checked 2026-08-20)' },
+  { name: 'body-parser', floor: '2.4.0', advisory: 'GHSA-27r3-jxmh-p828 DoS via trailing bytes (checked 2026-11-07)' },
   { name: 'form-data', floor: '4.0.6', advisory: 'GHSA-hmw2-7cc7-3qxx CRLF injection (checked 2026-08-20)' },
   { name: 'proxy-addr', floor: '2.0.8', advisory: 'GHSA-jqcg-44mw-7w3h IPv4-mapped IPv6 trust-subnet spoofing (checked 2026-10-23)' },
-  { name: 'follow-redirects', floor: '1.16.1', advisory: 'GHSA-q3jh-wrc6-jgq8 and GHSA-8r9p-f939-6h3c cross-origin credential stripping (checked 2026-10-23)' },
+  { name: 'follow-redirects', floor: '1.16.2', advisory: 'GHSA-mrwp-f3q8-3g9p cross-realm sensitiveHeaders discarded (checked 2026-11-07)' },
+  // Reached through @modelcontextprotocol/sdk, whose range still admits vulnerable 2.1.x releases.
+  { name: '@hono/node-server', floor: '2.1.3', advisory: 'GHSA-rmxm-3fg6-px4f serveStatic double path decoding (checked 2026-11-07)' },
 ];
 
 describe('security overrides (npm-audit gate regression guard)', () => {
@@ -114,21 +116,28 @@ describe('security overrides (npm-audit gate regression guard)', () => {
   }
 });
 
-describe('axios security floor (checked 2026-10-02)', () => {
-  const floor = '1.20.0'; // GHSA-vh66-26gq-q6x8 and the other September 2026 axios advisories
+// Direct dependencies carry their floor in `dependencies`, which also protects
+// installs of the published package (overrides apply only to this repo).
+const DIRECT_FLOORS: Pin[] = [
+  { name: 'axios', floor: '1.20.0', advisory: 'GHSA-vh66-26gq-q6x8 and the other September 2026 axios advisories (checked 2026-10-02)' },
+  { name: 'zod', floor: '4.6.6', advisory: 'GHSA-mrhx-c7xc-m3w5 memory exhaustion on oversized constrained collections (checked 2026-11-07)' },
+];
 
-  it('declares the patched version floor in package.json', () => {
-    expect(pkg.dependencies?.axios).toBe(`^${floor}`);
-  });
+for (const { name, floor, advisory } of DIRECT_FLOORS) {
+  describe(`${name} security floor (${advisory})`, () => {
+    it('declares the patched version floor in package.json', () => {
+      expect(pkg.dependencies?.[name]).toBe(`^${floor}`);
+    });
 
-  it('resolves every axios lockfile entry to the patched version or later', () => {
-    const versions = resolvedVersions('axios');
-    expect(versions.length).toBeGreaterThan(0);
-    for (const version of versions) {
-      expect(gte(version, floor), `axios ${version} is below ${floor}`).toBe(true);
-    }
+    it(`resolves every ${name} lockfile entry to the patched version or later`, () => {
+      const versions = resolvedVersions(name);
+      expect(versions.length).toBeGreaterThan(0);
+      for (const version of versions) {
+        expect(gte(version, floor), `${name} ${version} is below ${floor}`).toBe(true);
+      }
+    });
   });
-});
+}
 
 // Direct exercise of the comparator so the prerelease/build-metadata handling
 // is locked in independently of whatever versions happen to be in the lockfile
