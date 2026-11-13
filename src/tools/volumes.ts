@@ -4,6 +4,22 @@ import { hetznerRequest } from '../services/hetzner.js';
 import { handleToolRequest } from '../helpers.js';
 import { IdSchema, PaginationParams, LabelSelectorParam, LabelsSchema, SortParam, ActionStatusFilterParam } from '../schemas/common.js';
 
+const VolumeAssigneeSchema = z.object({
+  id: IdSchema.describe('ID of the resource'),
+  type: z.literal('server').describe('Type of the resource (currently only "server")'),
+});
+
+type VolumeAssignee = z.infer<typeof VolumeAssigneeSchema>;
+
+// Hetzner deprecated the volume `server` request property on 2026-10-27 and removes it on
+// 2027-10-27. The MCP `server` input stays as an alias, but only `assignee` is sent.
+function resolveVolumeAssignee(server: number | undefined, assignee: VolumeAssignee | undefined): VolumeAssignee | undefined {
+  if (server !== undefined && assignee !== undefined) {
+    throw new Error('Provide either assignee or server, not both');
+  }
+  return assignee ?? (server === undefined ? undefined : { id: server, type: 'server' });
+}
+
 export function registerVolumeTools(server: McpServer): void {
   // List volumes
   server.registerTool(
@@ -42,19 +58,24 @@ export function registerVolumeTools(server: McpServer): void {
     'hetzner_create_volume',
     {
       title: 'Create Volume',
-      description: 'Create a new volume. Either location or server must be provided to determine placement.',
+      description: 'Create a new volume. Either location or assignee must be provided to determine placement.',
       inputSchema: z.object({
         name: z.string().describe('Name of the volume'),
         size: z.number().int().positive().describe('Size of the volume in GB'),
-        location: z.string().optional().describe('Location name (e.g. "fsn1"). Required if server is not set'),
-        server: z.number().int().positive().optional().describe('Server ID to attach the volume to. Required if location is not set'),
+        location: z.string().optional().describe('Location name (e.g. "fsn1"). Required if no assignee is set'),
+        assignee: VolumeAssigneeSchema.optional().describe('Resource to attach the volume to once created; the volume is created in its location'),
+        server: z.number().int().positive().optional().describe('Deprecated alias for assignee {id: server, type: "server"}; do not combine with assignee'),
         format: z.enum(['ext4', 'xfs']).optional().describe('Filesystem format for the volume'),
-        automount: z.boolean().optional().describe('Auto-mount the volume after attaching to a server'),
+        automount: z.boolean().optional().describe('Auto-mount the volume after attaching it to the assignee'),
         labels: LabelsSchema,
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
-    handleToolRequest(async (params) => hetznerRequest('POST', '/volumes', params))
+    handleToolRequest(async (params) => {
+      const { server: legacyServer, assignee, ...body } = params;
+      const target = resolveVolumeAssignee(legacyServer, assignee);
+      return hetznerRequest('POST', '/volumes', target ? { ...body, assignee: target } : body);
+    })
   );
 
   // Update volume
@@ -95,17 +116,20 @@ export function registerVolumeTools(server: McpServer): void {
     'hetzner_attach_volume',
     {
       title: 'Attach Volume',
-      description: 'Attach a volume to a server. The server and volume must be in the same location.',
+      description: 'Attach a volume to a resource such as a server. The resource and volume must be in the same location.',
       inputSchema: z.object({
         id: IdSchema.describe('Volume ID'),
-        server: z.number().int().positive().describe('Server ID to attach the volume to'),
+        assignee: VolumeAssigneeSchema.optional().describe('Resource to attach the volume to; required unless the deprecated server is set'),
+        server: z.number().int().positive().optional().describe('Deprecated alias for assignee {id: server, type: "server"}; do not combine with assignee'),
         automount: z.boolean().optional().describe('Auto-mount the volume after attaching'),
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
     handleToolRequest(async (params) => {
-      const { id, ...body } = params;
-      return hetznerRequest('POST', `/volumes/${id}/actions/attach`, body);
+      const { id, server: legacyServer, assignee, ...body } = params;
+      const target = resolveVolumeAssignee(legacyServer, assignee);
+      if (!target) throw new Error('Provide assignee (or the deprecated server) to attach the volume to');
+      return hetznerRequest('POST', `/volumes/${id}/actions/attach`, { ...body, assignee: target });
     })
   );
 

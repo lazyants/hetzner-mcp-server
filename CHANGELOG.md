@@ -10,6 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.0] — 2026-11-13
+
+### Added
+
+- `hetzner_create_volume` and `hetzner_attach_volume` accept the `assignee` object (`{ id, type: "server" }`) that Hetzner introduced on 2026-10-27 (#108).
+
+### Changed
+
+- Both tools now send only `assignee` to the API. The `server` input still works as a deprecated alias and is translated to `assignee`, so existing calls keep working after Hetzner removes the `server` request property on 2027-10-27. Passing both `server` and `assignee`, or attaching without either, is rejected before any API request.
+
+### Security
+
+- Lock `hono` (an MCP SDK dependency) at 4.13.18 in this repository, which fixes five moderate advisories (GHSA-4m76-xfj5-7975, GHSA-h7mg-cq63-vhpq, GHSA-3gg2-335m-rxc6, GHSA-46wx-v44x-9hh2, GHSA-4h7h-rv7c-7m2v) (#109).
+
 ## [4.0.3] — 2026-11-07
 
 ### Security
@@ -449,6 +463,7 @@ Total registered tools grew from 104 to 147 (+43): +22 DNS Zones
 - Rate-limit handling with exponential backoff (max 3 retries on 429).
 - GitHub Actions test and MCP Registry publish workflows.
 
+[4.1.0]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v4.1.0
 [4.0.3]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v4.0.3
 [4.0.2]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v4.0.2
 [4.0.1]: https://github.com/lazyants/hetzner-mcp-server/releases/tag/v4.0.1
